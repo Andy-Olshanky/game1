@@ -6,9 +6,17 @@ use ggez::{
 };
 
 pub const SCREEN_SIZE: (f32, f32) = (1000.0, 700.0);
+const TARGET_FPS: f64 = 60.0;
+
+trait Gravity {
+    const ACCELERATION: f64 = 9.8;
+    fn apply_gravity(&mut self, dt: f64);
+}
 
 struct Square {
     square: Rect,
+    velocity_x: f64,
+    velocity_y: f64
 }
 
 impl Square {
@@ -22,12 +30,20 @@ impl Square {
                 length,
                 length,
             ),
+            velocity_x: 0.0,
+            velocity_y: 0.0,
         }
     }
 
     fn move_position(&mut self, x: f32, y: f32) {
         self.square.x += x;
         self.square.y += y;
+    }
+}
+
+impl Gravity for Square {
+    fn apply_gravity(&mut self, dt: f64) {
+        self.velocity_y += Self::ACCELERATION * dt;
     }
 }
 
@@ -45,8 +61,9 @@ impl GameState {
 
 impl EventHandler for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        while ctx.time.check_update_time(60) {
-            self.square.move_position(0.0, 5.0);
+        while ctx.time.check_update_time(TARGET_FPS as u32) {
+            self.square.move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
+            self.square.apply_gravity(1.0 / TARGET_FPS);
         }
 
         Ok(())
