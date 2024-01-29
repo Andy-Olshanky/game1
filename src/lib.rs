@@ -15,27 +15,21 @@ trait Gravity {
 
 struct Floor {
     line: Mesh,
-    start_point: Point2<f32>,
-    end_point: Point2<f32>,
-    color: Color,
+    points: Vec<Point2<f32>>,
 }
 
 impl Floor {
     fn new(ctx: &mut Context) -> Floor {
-        let start_point = Point2 { x: 0.0, y: 600.0 };
-        let end_point = Point2 {
-            x: SCREEN_SIZE.0,
-            y: 600.0,
-        };
-        let color = Color::WHITE;
-        let line = Mesh::new_line(ctx, &vec![start_point, end_point], 1.0, color).unwrap();
-        
-        Floor {
-            line,
-            start_point,
-            end_point,
-            color,
-        }
+        let points = vec![
+            Point2 { x: 0.0, y: 600.0 },
+            Point2 {
+                x: SCREEN_SIZE.0,
+                y: 500.0,
+            },
+        ];
+        let line = Mesh::new_line(ctx, &points, 1.0, Color::WHITE).unwrap();
+
+        Floor { line, points }
     }
 }
 
@@ -92,15 +86,74 @@ impl GameState {
             floor: Floor::new(ctx),
         })
     }
+
+    fn square_intersects_floor(&self) -> bool {
+        let start = self.floor.points[0];
+        let end = self.floor.points[1];
+
+        let x1 = start.x;
+        let y1 = start.y;
+        let x2 = end.x;
+        let y2 = end.y;
+
+        let x = self.square.square.x;
+        let y = self.square.square.y;
+        let w = self.square.square.w;
+        let h = self.square.square.h;
+
+        // Do the coordinates overlap at all
+        if (x1 < x && x2 < x)
+            || (x1 > x + w && x2 > x + w)
+            || (y1 < y && y2 < y)
+            || (y1 > y + h && y2 > y + h)
+        {
+            return false;
+        }
+
+        // Vertical Line
+        if x1 == x2 {
+            if x1 >= x && x2 <= x + w {
+                return true;
+            }
+        }
+        // Horizontal Line
+        else if y1 == y2 {
+            if y1 >= y && y2 <= y + h {
+                return true;
+            }
+        } else {
+            let m = (y2 - y1) / (x2 - x1);
+            let b = y1 - m * x1;
+
+            for i in 0..2 {
+                let temp_y = match i {
+                    0 => y,
+                    _ => y + h
+                };
+
+                let xi = (temp_y - b) / m;
+                let yi = m * xi + b;
+
+                if xi >= x && xi <= x + w && yi >= y && yi <= y + h {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
 }
 
 impl EventHandler for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while ctx.time.check_update_time(TARGET_FPS as u32) {
+            if self.square_intersects_floor() {
+                self.square.velocity_x = 0.0;
+                self.square.velocity_y = 0.0;
+            }
             self.square
                 .move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
             self.square.apply_gravity(1.0 / TARGET_FPS);
-
         }
 
         Ok(())
