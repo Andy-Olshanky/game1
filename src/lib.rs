@@ -1,6 +1,6 @@
 use ggez::{
     event::EventHandler,
-    graphics::{self, Canvas, Color, DrawParam, Rect},
+    graphics::{self, Canvas, Color, DrawParam, Rect, Mesh},
     mint::Point2,
     Context, GameResult,
 };
@@ -16,7 +16,7 @@ trait Gravity {
 struct Square {
     square: Rect,
     velocity_x: f64,
-    velocity_y: f64
+    velocity_y: f64,
 }
 
 impl Square {
@@ -49,20 +49,37 @@ impl Gravity for Square {
 
 pub struct GameState {
     square: Square,
+    floor: Mesh,
 }
 
 impl GameState {
-    pub fn new() -> GameResult<Self> {
+    pub fn new(ctx: &mut Context) -> GameResult<Self> {
+        let start_point = Point2 { x: 0.0, y: 600.0 };
+        let end_point = Point2 {
+            x: 1000.0,
+            y: 600.0,
+        };
+        let line_thickness = 1.0;
+        let line_color = Color::new(1.0, 1.0, 1.0, 1.0);
+        let line_mesh =
+            graphics::Mesh::new_line(ctx, &[start_point, end_point], line_thickness, line_color)?;
+
         Ok(GameState {
             square: Square::new(),
+            floor: line_mesh,
         })
+    }
+
+    fn intersecting(&self) -> bool {
+        
     }
 }
 
 impl EventHandler for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while ctx.time.check_update_time(TARGET_FPS as u32) {
-            self.square.move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
+            self.square
+                .move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
             self.square.apply_gravity(1.0 / TARGET_FPS);
         }
 
@@ -79,13 +96,7 @@ impl EventHandler for GameState {
                 .color(Color::WHITE),
         );
 
-        let start_point = Point2 { x: 0.0, y: 600.0 };
-        let end_point = Point2 { x: 1000.0, y: 600.0 };
-        let line_thickness = 1.0;
-        let line_color = Color::new(1.0, 1.0, 1.0, 1.0);
-        let line_mesh = graphics::Mesh::new_line(ctx, &[start_point, end_point], line_thickness, line_color)?;
-
-        canvas.draw(&line_mesh, graphics::DrawParam::default());
+        canvas.draw(&self.floor, graphics::DrawParam::default());
 
         canvas.finish(ctx)?;
 
