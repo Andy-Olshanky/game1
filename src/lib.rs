@@ -1,6 +1,6 @@
 use ggez::{
     event::EventHandler,
-    graphics::{self, Canvas, Color, DrawParam, Rect, Mesh},
+    graphics::{self, Canvas, Color, DrawParam, Mesh, Rect},
     mint::Point2,
     Context, GameResult,
 };
@@ -13,10 +13,38 @@ trait Gravity {
     fn apply_gravity(&mut self, dt: f64);
 }
 
+struct Floor {
+    line: Mesh,
+    start_point: Point2<f32>,
+    end_point: Point2<f32>,
+    color: Color,
+}
+
+impl Floor {
+    fn new(ctx: &mut Context) -> Floor {
+        let start_point = Point2 { x: 0.0, y: 600.0 };
+        let end_point = Point2 {
+            x: SCREEN_SIZE.0,
+            y: 600.0,
+        };
+        let color = Color::WHITE;
+        let line = Mesh::new_line(ctx, &vec![start_point, end_point], 1.0, color).unwrap();
+        
+        Floor {
+            line,
+            start_point,
+            end_point,
+            color,
+        }
+    }
+}
+
 struct Square {
     square: Rect,
     velocity_x: f64,
     velocity_y: f64,
+    _max_velocity_x: f64,
+    max_velocity_y: f64,
 }
 
 impl Square {
@@ -32,6 +60,8 @@ impl Square {
             ),
             velocity_x: 0.0,
             velocity_y: 0.0,
+            _max_velocity_x: 10.0,
+            max_velocity_y: 10.0,
         }
     }
 
@@ -44,34 +74,23 @@ impl Square {
 impl Gravity for Square {
     fn apply_gravity(&mut self, dt: f64) {
         self.velocity_y += Self::ACCELERATION * dt;
+        if self.velocity_y > self.max_velocity_y {
+            self.velocity_y = self.max_velocity_y;
+        }
     }
 }
 
 pub struct GameState {
     square: Square,
-    floor: Mesh,
+    floor: Floor,
 }
 
 impl GameState {
     pub fn new(ctx: &mut Context) -> GameResult<Self> {
-        let start_point = Point2 { x: 0.0, y: 600.0 };
-        let end_point = Point2 {
-            x: 1000.0,
-            y: 600.0,
-        };
-        let line_thickness = 1.0;
-        let line_color = Color::new(1.0, 1.0, 1.0, 1.0);
-        let line_mesh =
-            graphics::Mesh::new_line(ctx, &[start_point, end_point], line_thickness, line_color)?;
-
         Ok(GameState {
             square: Square::new(),
-            floor: line_mesh,
+            floor: Floor::new(ctx),
         })
-    }
-
-    fn intersecting(&self) -> bool {
-        
     }
 }
 
@@ -81,6 +100,7 @@ impl EventHandler for GameState {
             self.square
                 .move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
             self.square.apply_gravity(1.0 / TARGET_FPS);
+
         }
 
         Ok(())
@@ -96,7 +116,7 @@ impl EventHandler for GameState {
                 .color(Color::WHITE),
         );
 
-        canvas.draw(&self.floor, graphics::DrawParam::default());
+        canvas.draw(&self.floor.line, graphics::DrawParam::default());
 
         canvas.finish(ctx)?;
 
