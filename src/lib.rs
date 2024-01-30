@@ -158,15 +158,6 @@ impl GameState {
                     return true;
                 }
             }
-            // let m_square = -1.0 / m_floor;
-            // let b_square = y - m_square * x;
-
-            // let xi = (b_floor - b_square) / (m_square - m_floor);
-            // let yi = m_floor * xi + b_floor;
-
-            // if (x <= xi && xi <= x + w) && (y <= yi && yi <= y + h) {
-            //     return true;
-            // }
         }
 
         false
