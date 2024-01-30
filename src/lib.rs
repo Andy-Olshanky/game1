@@ -24,7 +24,7 @@ impl Floor {
             Point2 { x: 0.0, y: 600.0 },
             Point2 {
                 x: SCREEN_SIZE.0,
-                y: 500.0,
+                y: 600.0,
             },
         ];
         let line = Mesh::new_line(ctx, &points, 1.0, Color::WHITE).unwrap();
@@ -39,29 +39,49 @@ struct Square {
     velocity_y: f64,
     _max_velocity_x: f64,
     max_velocity_y: f64,
+    corners: [Point2<f32>; 4],
 }
 
 impl Square {
     fn new() -> Square {
         let length = 50.0;
+        let x = SCREEN_SIZE.0 / 2.0 - length / 2.0;
+        let y = SCREEN_SIZE.1  / 2.0;
+        let corners = [
+            Point2 { x, y },
+            Point2 { x: x + length, y },
+            Point2 { x, y: y + length },
+            Point2 { x: x + length, y: y + length },
+        ];
 
         Square {
-            square: Rect::new(
-                SCREEN_SIZE.0 / 2.0 - length / 2.0,
-                SCREEN_SIZE.1 / 8.0,
-                length,
-                length,
-            ),
+            square: Rect::new(x, y, length, length),
             velocity_x: 0.0,
             velocity_y: 0.0,
-            _max_velocity_x: 10.0,
-            max_velocity_y: 10.0,
+            _max_velocity_x: 15.0,
+            max_velocity_y: 15.0,
+            corners,
         }
     }
 
     fn move_position(&mut self, x: f32, y: f32) {
         self.square.x += x;
         self.square.y += y;
+        self.update_corners();
+    }
+
+    fn update_corners(&mut self) {
+        self.corners[0].x = self.square.x;
+        self.corners[0].y = self.square.y;
+
+        self.corners[1].x = self.square.x + self.square.w;
+        self.corners[1].y = self.square.y;
+
+        self.corners[2].x = self.square.x;
+        self.corners[2].y = self.square.y + self.square.h;
+
+        self.corners[3].x = self.square.x + self.square.w;
+        self.corners[3].y = self.square.y + self.square.h
     }
 }
 
@@ -79,6 +99,8 @@ pub struct GameState {
     floor: Floor,
 }
 
+// TODO: Snap to floor
+// TODO: Rotation oh god...
 impl GameState {
     pub fn new(ctx: &mut Context) -> GameResult<Self> {
         Ok(GameState {
@@ -122,22 +144,29 @@ impl GameState {
                 return true;
             }
         } else {
-            let m = (y2 - y1) / (x2 - x1);
-            let b = y1 - m * x1;
+            let m_floor = (y2 - y1) / (x2 - x1);
+            let b_floor = y1 - m_floor * x1;
 
-            for i in 0..2 {
-                let temp_y = match i {
-                    0 => y,
-                    _ => y + h
-                };
+            for corner in self.square.corners {
+                let m_square = -1.0 / m_floor;
+                let b_square = corner.y - m_square * corner.x;
 
-                let xi = (temp_y - b) / m;
-                let yi = m * xi + b;
+                let xi = (b_floor - b_square) / (m_square - m_floor);
+                let yi = m_floor * xi + b_floor;
 
-                if xi >= x && xi <= x + w && yi >= y && yi <= y + h {
+                if (x <= xi && xi <= x + w) && (y <= yi && yi <= y + h) {
                     return true;
                 }
             }
+            // let m_square = -1.0 / m_floor;
+            // let b_square = y - m_square * x;
+
+            // let xi = (b_floor - b_square) / (m_square - m_floor);
+            // let yi = m_floor * xi + b_floor;
+
+            // if (x <= xi && xi <= x + w) && (y <= yi && yi <= y + h) {
+            //     return true;
+            // }
         }
 
         false
