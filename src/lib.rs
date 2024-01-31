@@ -1,6 +1,6 @@
 use ggez::{
     event::EventHandler,
-    graphics::{self, Canvas, Color, DrawParam, Mesh, Rect},
+    graphics::{self, Canvas, Color, DrawMode, DrawParam, Mesh, Rect},
     mint::Point2,
     Context, GameResult,
 };
@@ -46,12 +46,15 @@ impl Square {
     fn new() -> Square {
         let length = 50.0;
         let x = SCREEN_SIZE.0 / 2.0 - length / 2.0;
-        let y = SCREEN_SIZE.1  / 2.0;
+        let y = SCREEN_SIZE.1 / 8.0;
         let corners = [
             Point2 { x, y },
             Point2 { x: x + length, y },
             Point2 { x, y: y + length },
-            Point2 { x: x + length, y: y + length },
+            Point2 {
+                x: x + length,
+                y: y + length,
+            },
         ];
 
         Square {
@@ -94,9 +97,34 @@ impl Gravity for Square {
     }
 }
 
+struct Shape {
+    shape: Mesh,
+}
+
+impl Shape {
+    fn new(ctx: &mut Context) -> Shape {
+        let length = 50.0;
+        let x = SCREEN_SIZE.0 / 2.0 - length / 2.0;
+        let y = SCREEN_SIZE.1 / 2.0;
+        let corners = [
+            Point2 { x, y },
+            Point2 { x: x + length, y },
+            Point2 { x, y: y + length },
+            Point2 {
+                x: x + length,
+                y: y + length,
+            },
+        ];
+        let shape = Mesh::new_polygon(ctx, DrawMode::fill(), &corners, Color::WHITE).unwrap();
+
+        Shape { shape }
+    }
+}
+
 pub struct GameState {
     square: Square,
     floor: Floor,
+    shape: Shape,
 }
 
 // TODO: Snap to floor
@@ -106,6 +134,7 @@ impl GameState {
         Ok(GameState {
             square: Square::new(),
             floor: Floor::new(ctx),
+            shape: Shape::new(ctx),
         })
     }
 
@@ -189,7 +218,9 @@ impl EventHandler for GameState {
                 .color(Color::WHITE),
         );
 
-        canvas.draw(&self.floor.line, graphics::DrawParam::default());
+        canvas.draw(&self.shape.shape, DrawParam::default());
+
+        canvas.draw(&self.floor.line, DrawParam::default());
 
         canvas.finish(ctx)?;
 
