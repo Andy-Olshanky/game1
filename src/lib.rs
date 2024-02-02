@@ -46,8 +46,8 @@ struct Square {
 impl Square {
     fn new() -> Square {
         let length = 50.0;
-        let x = SCREEN_SIZE.0 / 2.0 - length / 2.0;
-        let y = SCREEN_SIZE.1 / 8.0;
+        let x = SCREEN_SIZE.0 / 2.0 - length / 2.0 + 150.0;
+        let y = SCREEN_SIZE.1 / 2.0;
         let corners = [
             Point2 { x, y },
             Point2 { x: x + length, y },
@@ -178,7 +178,7 @@ impl Shape {
     }
 
     fn move_position(&mut self, x: f32, y: f32, ctx: &mut Context) {
-        if (x != 0.0 || y != 0.0) {
+        if x != 0.0 || y != 0.0 {
             for corner in &mut self.corners {
                 corner.x += x;
                 corner.y += y;
@@ -237,7 +237,7 @@ impl Circle {
 }
 
 pub struct GameState {
-    // square: Square,
+    square: Square,
     floor: Floor,
     shape: Shape,
     shape1: Shape,
@@ -252,7 +252,7 @@ pub struct GameState {
 impl GameState {
     pub fn new(ctx: &mut Context) -> GameResult<Self> {
         Ok(GameState {
-            // square: Square::new(),
+            square: Square::new(),
             floor: Floor::new(ctx),
             shape: Shape::new(ctx),
             shape1: Shape::new1(ctx),
@@ -262,71 +262,72 @@ impl GameState {
         })
     }
 
-    // fn square_intersects_floor(&self) -> bool {
-    //     let start = self.floor.points[0];
-    //     let end = self.floor.points[1];
+    fn square_intersects_floor(&self) -> bool {
+        let start = self.floor.points[0];
+        let end = self.floor.points[1];
 
-    //     let x1 = start.x;
-    //     let y1 = start.y;
-    //     let x2 = end.x;
-    //     let y2 = end.y;
+        let x1 = start.x;
+        let y1 = start.y;
+        let x2 = end.x;
+        let y2 = end.y;
 
-    //     let x = self.square.square.x;
-    //     let y = self.square.square.y;
-    //     let w = self.square.square.w;
-    //     let h = self.square.square.h;
+        let x = self.square.square.x;
+        let y = self.square.square.y;
+        let w = self.square.square.w;
+        let h = self.square.square.h;
 
-    //     // Do the coordinates overlap at all
-    //     if (x1 < x && x2 < x)
-    //         || (x1 > x + w && x2 > x + w)
-    //         || (y1 < y && y2 < y)
-    //         || (y1 > y + h && y2 > y + h)
-    //     {
-    //         return false;
-    //     }
+        // Do the coordinates overlap at all
+        if (x1 < x && x2 < x)
+            || (x1 > x + w && x2 > x + w)
+            || (y1 < y && y2 < y)
+            || (y1 > y + h && y2 > y + h)
+        {
+            return false;
+        }
 
-    //     // Vertical Line
-    //     if x1 == x2 {
-    //         if x1 >= x && x2 <= x + w {
-    //             return true;
-    //         }
-    //     }
-    //     // Horizontal Line
-    //     else if y1 == y2 {
-    //         if y1 >= y && y2 <= y + h {
-    //             return true;
-    //         }
-    //     } else {
-    //         let m_floor = (y2 - y1) / (x2 - x1);
-    //         let b_floor = y1 - m_floor * x1;
+        // Vertical Line
+        if x1 == x2 {
+            if x1 >= x && x2 <= x + w {
+                return true;
+            }
+        }
+        // Horizontal Line
+        else if y1 == y2 {
+            if y1 >= y && y2 <= y + h {
+                return true;
+            }
+        } else {
+            let m_floor = (y2 - y1) / (x2 - x1);
+            let b_floor = y1 - m_floor * x1;
 
-    //         for corner in self.square.corners {
-    //             let m_square = -1.0 / m_floor;
-    //             let b_square = corner.y - m_square * corner.x;
+            for corner in self.square.corners {
+                let m_square = -1.0 / m_floor;
+                let b_square = corner.y - m_square * corner.x;
 
-    //             let xi = (b_floor - b_square) / (m_square - m_floor);
-    //             let yi = m_floor * xi + b_floor;
+                let xi = (b_floor - b_square) / (m_square - m_floor);
+                let yi = m_floor * xi + b_floor;
 
-    //             if (x <= xi && xi <= x + w) && (y <= yi && yi <= y + h) {
-    //                 return true;
-    //             }
-    //         }
-    //     }
+                if (x <= xi && xi <= x + w) && (y <= yi && yi <= y + h) {
+                    return true;
+                }
+            }
+        }
 
-    //     false
-    // }
+        false
+    }
 }
 
 impl EventHandler for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while ctx.time.check_update_time(TARGET_FPS as u32) {
-            // if self.square_intersects_floor() {
-            //     self.square.velocity_x = 0.0;
-            //     self.square.velocity_y = 0.0;
-            // }
-            // self.square
-            //     .move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
-            // self.square.apply_gravity(1.0 / TARGET_FPS);
+            if self.square_intersects_floor() {
+                self.square.velocity_x = 0.0;
+                self.square.velocity_y = 0.0;
+            }
+            self.square
+                .move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
+            self.square.apply_gravity(1.0 / TARGET_FPS);
+
             self.shape.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
             self.shape1.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
             self.shape2.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
@@ -346,12 +347,12 @@ impl EventHandler for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::BLACK);
 
-        // canvas.draw(
-        //     &graphics::Quad,
-        //     DrawParam::new()
-        //         .dest_rect(self.square.square)
-        //         .color(Color::WHITE),
-        // );
+        canvas.draw(
+            &graphics::Quad,
+            DrawParam::new()
+                .dest_rect(self.square.square)
+                .color(Color::WHITE),
+        );
 
         canvas.draw(&self.shape.shape, DrawParam::default());
         canvas.draw(&self.shape1.shape, DrawParam::default());
