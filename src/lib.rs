@@ -101,6 +101,10 @@ impl Gravity for Square {
 struct Shape {
     shape: Mesh,
     corners: Vec<Point2<f32>>,
+    velocity_x: f64,
+    velocity_y: f64,
+    max_velocity_y: f64,
+    max_velocity_x: f64,
 }
 
 impl Shape {
@@ -119,7 +123,7 @@ impl Shape {
         ];
         let shape = Mesh::new_polygon(ctx, DrawMode::fill(), &corners, Color::WHITE).unwrap();
 
-        Shape { shape, corners }
+        Shape { shape, corners, velocity_x: 0.0, velocity_y: 0.0, max_velocity_x: 15.0, max_velocity_y: 15.0 }
     }
 
     fn new1(ctx: &mut Context) -> Shape {
@@ -137,7 +141,7 @@ impl Shape {
         ];
         let shape = Mesh::new_polygon(ctx, DrawMode::fill(), &corners, Color::WHITE).unwrap();
 
-        Shape { shape, corners }
+        Shape { shape, corners, velocity_x: 0.0, velocity_y: 0.0, max_velocity_x: 15.0, max_velocity_y: 15.0 }
     }
 
     fn new2(ctx: &mut Context) -> Shape {
@@ -154,7 +158,7 @@ impl Shape {
         ];
         let shape = Mesh::new_polygon(ctx, DrawMode::fill(), &corners, Color::WHITE).unwrap();
 
-        Shape { shape, corners }
+        Shape { shape, corners, velocity_x: 0.0, velocity_y: 0.0, max_velocity_x: 15.0, max_velocity_y: 15.0 }
     }
 
     fn new3(ctx: &mut Context) -> Shape {
@@ -170,14 +174,47 @@ impl Shape {
         }
         let shape = Mesh::new_polygon(ctx, DrawMode::fill(), &corners, Color::WHITE).unwrap();
 
-        Shape { shape, corners }
+        Shape { shape, corners, velocity_x: 0.0, velocity_y: 0.0, max_velocity_x: 15.0, max_velocity_y: 15.0 }
+    }
+
+    fn move_position(&mut self, x: f32, y: f32, ctx: &mut Context) {
+        if (x != 0.0 || y != 0.0) {
+            for corner in &mut self.corners {
+                corner.x += x;
+                corner.y += y;
+            }
+
+            self.shape = Mesh::new_polygon(ctx, DrawMode::fill(), &self.corners, Color::WHITE).unwrap();
+        }
+    }
+}
+
+impl Gravity for Shape {
+    fn apply_gravity(&mut self, dt: f64) {
+        self.velocity_y += Self::ACCELERATION * dt;
+        if self.velocity_y > self.max_velocity_y {
+            self.velocity_y = self.max_velocity_y;
+        }
     }
 }
 
 struct Circle {
     circle: Mesh,
     center: Point2<f32>,
-    radius: f32
+    radius: f32,
+    velocity_x: f64,
+    velocity_y: f64,
+    max_velocity_x: f64,
+    max_velocity_y: f64,
+}
+
+impl Gravity for Circle {
+    fn apply_gravity(&mut self, dt: f64) {
+        self.velocity_y += Self::ACCELERATION * dt;
+        if self.velocity_y > self.max_velocity_y {
+            self.velocity_y = self.max_velocity_y;
+        }
+    }
 }
 
 impl Circle {
@@ -186,7 +223,16 @@ impl Circle {
         let radius = 50.0;
         let circle = Mesh::new_circle(ctx, DrawMode::fill(), center, radius, 0.01, Color::WHITE).unwrap();
 
-        Circle { circle, center, radius }
+        Circle { circle, center, radius, velocity_x: 0.0, velocity_y: 0.0, max_velocity_x: 15.0, max_velocity_y: 15.0 }
+    }
+
+    fn move_position(&mut self, x: f32, y: f32, ctx: &mut Context) {
+        if x == 0.0 || y == 0.0 {
+            self.center.x += x;
+            self.center.y += y;
+
+            self.circle = Mesh::new_circle(ctx, DrawMode::fill(), self.center, self.radius, 0.01, Color::WHITE).unwrap();
+        }
     }
 }
 
@@ -281,6 +327,17 @@ impl EventHandler for GameState {
             // self.square
             //     .move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
             // self.square.apply_gravity(1.0 / TARGET_FPS);
+            self.shape.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
+            self.shape1.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
+            self.shape2.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
+            self.shape3.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
+            self.circle.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
+
+            self.shape.apply_gravity(1.0 / TARGET_FPS);
+            self.shape1.apply_gravity(1.0 / TARGET_FPS);
+            self.shape2.apply_gravity(1.0 / TARGET_FPS);
+            self.shape3.apply_gravity(1.0 / TARGET_FPS);
+            self.circle.apply_gravity(1.0 / TARGET_FPS);
         }
 
         Ok(())
