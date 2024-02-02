@@ -168,43 +168,25 @@ impl Shape {
             let y1 = y + length * angle.sin();
             corners.push(Point2 { x: x1, y: y1 });
         }
-        // let corners = vec![
-        //     Point2 { x, y },
-        //     Point2 { x: x + length, y },
-        //     Point2 {
-        //         x: x + length * (1.0 + angle.cos()),
-        //         y: y + length * angle.sin(),
-        //     },
-        //     Point2 {
-        //         x: x + length,
-        //         y: y + 2.0 * length * angle.sin(),
-        //     },
-        //     Point2 {
-        //         x: x,
-        //         y: y + 2.0 * length * angle.sin(),
-        //     },
-        //     Point2 {
-        //         x: x - length * angle.cos(),
-        //         y: y + length * angle.sin(),
-        //     },
-        // ];
         let shape = Mesh::new_polygon(ctx, DrawMode::fill(), &corners, Color::WHITE).unwrap();
 
         Shape { shape, corners }
     }
+}
 
-    fn new_cirlce(ctx: &mut Context, pos: f32, tolerance: f32) -> Shape {
-        let center = Point2 {
-            x: SCREEN_SIZE.0 * pos / 8.0,
-            y: SCREEN_SIZE.1 / 4.0,
-        };
-        let shape =
-            Mesh::new_circle(ctx, DrawMode::fill(), center, 50.0, tolerance, Color::WHITE).unwrap();
+struct Circle {
+    circle: Mesh,
+    center: Point2<f32>,
+    radius: f32
+}
 
-        Shape {
-            shape,
-            corners: vec![],
-        }
+impl Circle {
+    fn new(ctx: &mut Context) -> Circle {
+        let center = Point2 { x: SCREEN_SIZE.0 / 2.0, y: SCREEN_SIZE.1 / 2.0};
+        let radius = 50.0;
+        let circle = Mesh::new_circle(ctx, DrawMode::fill(), center, radius, 0.01, Color::WHITE).unwrap();
+
+        Circle { circle, center, radius }
     }
 }
 
@@ -215,13 +197,7 @@ pub struct GameState {
     shape1: Shape,
     shape2: Shape,
     shape3: Shape,
-    circle1: Shape,
-    // circle2: Shape,
-    // circle3: Shape,
-    // circle4: Shape,
-    // circle5: Shape,
-    // circle6: Shape,
-    // circle7: Shape,
+    circle: Circle
 }
 
 // TODO: Reconfigure gravity and collision detection to work with any shape
@@ -236,13 +212,7 @@ impl GameState {
             shape1: Shape::new1(ctx),
             shape2: Shape::new2(ctx),
             shape3: Shape::new3(ctx),
-            circle1: Shape::new_cirlce(ctx, 4.0, 0.01),
-            // circle2: Shape::new_cirlce(ctx, 2.0, 1.0),
-            // circle3: Shape::new_cirlce(ctx, 3.0, 0.75),
-            // circle4: Shape::new_cirlce(ctx, 4.0, 0.5),
-            // circle5: Shape::new_cirlce(ctx, 5.0, 0.25),
-            // circle6: Shape::new_cirlce(ctx, 6.0, 0.1),
-            // circle7: Shape::new_cirlce(ctx, 7.0, 0.01),
+            circle: Circle::new(ctx)
         })
     }
 
@@ -330,14 +300,7 @@ impl EventHandler for GameState {
         canvas.draw(&self.shape1.shape, DrawParam::default());
         canvas.draw(&self.shape2.shape, DrawParam::default());
         canvas.draw(&self.shape3.shape, DrawParam::default());
-        canvas.draw(&self.circle1.shape, DrawParam::default());
-        // canvas.draw(&self.circle2.shape, DrawParam::default());
-        // canvas.draw(&self.circle3.shape, DrawParam::default());
-        // canvas.draw(&self.circle4.shape, DrawParam::default());
-        // canvas.draw(&self.circle5.shape, DrawParam::default());
-        // canvas.draw(&self.circle6.shape, DrawParam::default());
-        // canvas.draw(&self.circle7.shape, DrawParam::default());
-
+        canvas.draw(&self.circle.circle, DrawParam::default());
         canvas.draw(&self.floor.line, DrawParam::default());
 
         canvas.finish(ctx)?;
