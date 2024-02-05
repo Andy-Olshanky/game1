@@ -18,6 +18,7 @@ pub struct Floor {
 
 impl Floor {
     pub fn new(ctx: &mut Context) -> Floor {
+        // Flat on bottom
         let points = vec![
             Point2 { x: 0.0, y: 600.0 },
             Point2 {
@@ -25,6 +26,106 @@ impl Floor {
                 y: 600.0,
             },
         ];
+
+        // // Flat on top
+        // let points = vec![
+        //     Point2 { x: 0.0, y: 100.0 },
+        //     Point2 {
+        //         x: SCREEN_SIZE.0,
+        //         y: 100.0,
+        //     },
+        // ];
+
+        // // Flat on right
+        // let points = vec![
+        //     Point2 { x: 900.0, y: 0.0 },
+        //     Point2 {
+        //         x: 900.0,
+        //         y: SCREEN_SIZE.1,
+        //     },
+        // ];
+
+        // // Flat on left
+        // let points = vec![
+        //     Point2 { x: 100.0, y: 0.0 },
+        //     Point2 {
+        //         x: 100.0,
+        //         y: SCREEN_SIZE.1,
+        //     },
+        // ];
+
+        // // Positive on bottom
+        // let points = vec![
+        //     Point2 { x: 0.0, y: 700.0 },
+        //     Point2 {
+        //         x: SCREEN_SIZE.0,
+        //         y: 600.0,
+        //     },
+        // ];
+
+        // // Negative on bottom
+        // let points = vec![
+        //     Point2 { x: 0.0, y: 600.0 },
+        //     Point2 {
+        //         x: SCREEN_SIZE.0,
+        //         y: 700.0,
+        //     },
+        // ];
+
+        // // Positive on top
+        // let points = vec![
+        //     Point2 { x: 0.0, y: 100.0 },
+        //     Point2 {
+        //         x: SCREEN_SIZE.0,
+        //         y: 0.0,
+        //     },
+        // ];
+
+        // // Negative on top
+        // let points = vec![
+        //     Point2 { x: 0.0, y: 0.0 },
+        //     Point2 {
+        //         x: SCREEN_SIZE.0,
+        //         y: 100.0,
+        //     },
+        // ];
+
+        // // Positive on right
+        // let points = vec![
+        //     Point2 { x: 900.0, y: 0.0 },
+        //     Point2 {
+        //         x: 1000.0,
+        //         y: SCREEN_SIZE.1,
+        //     },
+        // ];
+
+        // // Negative on right
+        // let points = vec![
+        //     Point2 { x: 1000.0, y: 0.0 },
+        //     Point2 {
+        //         x: 900.0,
+        //         y: SCREEN_SIZE.1,
+        //     },
+        // ];
+
+        // // Positive on left
+        // let points = vec![
+        //     Point2 { x: 0.0, y: 0.0 },
+        //     Point2 {
+        //         x: 100.0,
+        //         y: SCREEN_SIZE.1,
+        //     },
+        // ];
+
+        // // Negative on left
+        // let points = vec![
+        //     Point2 { x: 100.0, y: 0.0 },
+        //     Point2 {
+        //         x: 0.0,
+        //         y: SCREEN_SIZE.1,
+        //     },
+        // ];
+
         let line = Mesh::new_line(ctx, &points, 1.0, Color::WHITE).unwrap();
 
         Floor { line, points }
@@ -44,7 +145,7 @@ impl Square {
     pub fn new() -> Square {
         let length = 50.0;
         let x = SCREEN_SIZE.0 / 2.0 - length / 2.0 + 150.0;
-        let y = SCREEN_SIZE.1 / 10.0;
+        let y = SCREEN_SIZE.1 / 2.0;
         let corners = [
             Point2 { x, y },
             Point2 { x: x + length, y },
@@ -108,7 +209,7 @@ impl Shape {
     pub fn new(ctx: &mut Context) -> Shape {
         let length = 50.0;
         let x = 10.0;
-        let y = SCREEN_SIZE.1 / 10.0;
+        let y = SCREEN_SIZE.1 / 2.0;
         let corners = vec![
             Point2 { x, y },
             Point2 { x: x + length, y },
@@ -126,7 +227,7 @@ impl Shape {
     pub fn new1(ctx: &mut Context) -> Shape {
         let length = 50.0;
         let x = SCREEN_SIZE.0 / 4.0;
-        let y = SCREEN_SIZE.1 / 10.0;
+        let y = SCREEN_SIZE.1 / 2.0;
         let corners = vec![
             Point2 { x, y },
             Point2 { x: x + length, y },
@@ -144,7 +245,7 @@ impl Shape {
     pub fn new2(ctx: &mut Context) -> Shape {
         let length = 50.0;
         let x = SCREEN_SIZE.0 * 3.0 / 4.0;
-        let y = SCREEN_SIZE.1 / 10.0;
+        let y = SCREEN_SIZE.1 / 2.0;
         let corners = vec![
             Point2 { x, y },
             Point2 { x: x + length, y },
@@ -161,7 +262,7 @@ impl Shape {
     pub fn new3(ctx: &mut Context) -> Shape {
         let length = 50.0;
         let x = SCREEN_SIZE.0 - 100.0;
-        let y = SCREEN_SIZE.1 / 10.0;
+        let y = SCREEN_SIZE.1 / 2.0;
         let mut corners = Vec::new();
         for i in 0..6 {
             let angle = PI / 3.0 * i as f32;
@@ -216,7 +317,7 @@ impl Gravity for Circle {
 
 impl Circle {
     pub fn new(ctx: &mut Context) -> Circle {
-        let center = Point2 { x: SCREEN_SIZE.0 / 2.0, y: SCREEN_SIZE.1 / 10.0};
+        let center = Point2 { x: SCREEN_SIZE.0 / 2.0, y: SCREEN_SIZE.1 / 2.0};
         let radius = 50.0;
         let circle = Mesh::new_circle(ctx, DrawMode::fill(), center, radius, 0.01, Color::WHITE).unwrap();
 
