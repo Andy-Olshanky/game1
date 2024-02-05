@@ -1,11 +1,11 @@
 mod physics;
 
-pub use physics::{Gravity, Square, Shape, Circle, Floor};
 use ggez::{
     event::EventHandler,
     graphics::{self, Canvas, Color, DrawParam},
     Context, GameResult,
 };
+pub use physics::{Circle, Floor, Gravity, Shape, Square};
 
 pub const SCREEN_SIZE: (f32, f32) = (1000.0, 700.0);
 const TARGET_FPS: f64 = 60.0;
@@ -17,7 +17,7 @@ pub struct GameState {
     shape1: Shape,
     shape2: Shape,
     shape3: Shape,
-    circle: Circle
+    circle: Circle,
 }
 
 // TODO: Reconfigure gravity and collision detection to work with any shape
@@ -32,7 +32,7 @@ impl GameState {
             shape1: Shape::new1(ctx),
             shape2: Shape::new2(ctx),
             shape3: Shape::new3(ctx),
-            circle: Circle::new(ctx)
+            circle: Circle::new(ctx),
         })
     }
 
@@ -93,8 +93,41 @@ impl GameState {
     fn shape_intersects_floor(&self, shape: &Shape) -> bool {
         false
     }
-    
-    fn circle_intersects_floor(&self, shape: &Circle) -> bool {
+
+    fn circle_intersects_floor(&self, circle: &Circle) -> bool {
+        let start = self.floor.points[0];
+        let end = self.floor.points[1];
+
+        let x = circle.center.x;
+        let y = circle.center.y;
+
+        let left = x - circle.radius;
+        let right = x + circle.radius;
+        let top = y - circle.radius;
+        let bottom = y + circle.radius;
+
+        if start.x < left && end.x < left
+            || start.x > right && end.x > right
+            || start.y > bottom && end.y > bottom
+            || start.y < top && end.y < top
+        {
+            return false;
+        } 
+        // Vertical line
+        if start.x == end.x {
+            if start.x >= left && end.x <= right {
+                return true;
+            }
+        }
+        // Horizontal line
+        if start.y == end.y {
+            if start.y >= top && end.y <= bottom {
+                return true;
+            }
+        } else {
+            
+        }
+
         false
     }
 }
@@ -113,14 +146,38 @@ impl EventHandler for GameState {
                 self.square.velocity_x = 0.0;
                 self.square.velocity_y = 0.0;
             }
+            if self.circle_intersects_floor(&self.circle) {
+                self.circle.velocity_x = 0.0;
+                self.circle.velocity_y = 0.0;
+            }
+
             self.square
                 .move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
-            
-            self.shape.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
-            self.shape1.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
-            self.shape2.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
-            self.shape3.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
-            self.circle.move_position(self.shape.velocity_x as f32, self.shape.velocity_y as f32, ctx);
+            self.shape.move_position(
+                self.shape.velocity_x as f32,
+                self.shape.velocity_y as f32,
+                ctx,
+            );
+            self.shape1.move_position(
+                self.shape1.velocity_x as f32,
+                self.shape1.velocity_y as f32,
+                ctx,
+            );
+            self.shape2.move_position(
+                self.shape2.velocity_x as f32,
+                self.shape2.velocity_y as f32,
+                ctx,
+            );
+            self.shape3.move_position(
+                self.shape3.velocity_x as f32,
+                self.shape3.velocity_y as f32,
+                ctx,
+            );
+            self.circle.move_position(
+                self.circle.velocity_x as f32,
+                self.circle.velocity_y as f32,
+                ctx,
+            );
         }
 
         Ok(())
@@ -129,17 +186,17 @@ impl EventHandler for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::BLACK);
 
-        canvas.draw(
-            &graphics::Quad,
-            DrawParam::new()
-                .dest_rect(self.square.square)
-                .color(Color::WHITE),
-        );
+        // canvas.draw(
+        //     &graphics::Quad,
+        //     DrawParam::new()
+        //         .dest_rect(self.square.square)
+        //         .color(Color::WHITE),
+        // );
 
-        canvas.draw(&self.shape.shape, DrawParam::default());
-        canvas.draw(&self.shape1.shape, DrawParam::default());
-        canvas.draw(&self.shape2.shape, DrawParam::default());
-        canvas.draw(&self.shape3.shape, DrawParam::default());
+        // canvas.draw(&self.shape.shape, DrawParam::default());
+        // canvas.draw(&self.shape1.shape, DrawParam::default());
+        // canvas.draw(&self.shape2.shape, DrawParam::default());
+        // canvas.draw(&self.shape3.shape, DrawParam::default());
         canvas.draw(&self.circle.circle, DrawParam::default());
         canvas.draw(&self.floor.line, DrawParam::default());
 

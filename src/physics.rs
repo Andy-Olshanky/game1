@@ -18,14 +18,14 @@ pub struct Floor {
 
 impl Floor {
     pub fn new(ctx: &mut Context) -> Floor {
-        // Flat on bottom
-        let points = vec![
-            Point2 { x: 0.0, y: 600.0 },
-            Point2 {
-                x: SCREEN_SIZE.0,
-                y: 600.0,
-            },
-        ];
+        // // Flat on bottom
+        // let points = vec![
+        //     Point2 { x: 0.0, y: 600.0 },
+        //     Point2 {
+        //         x: SCREEN_SIZE.0,
+        //         y: 600.0,
+        //     },
+        // ];
 
         // // Flat on top
         // let points = vec![
@@ -54,14 +54,14 @@ impl Floor {
         //     },
         // ];
 
-        // // Positive on bottom
-        // let points = vec![
-        //     Point2 { x: 0.0, y: 700.0 },
-        //     Point2 {
-        //         x: SCREEN_SIZE.0,
-        //         y: 600.0,
-        //     },
-        // ];
+        // Positive on bottom
+        let points = vec![
+            Point2 { x: 0.0, y: 700.0 },
+            Point2 {
+                x: SCREEN_SIZE.0,
+                y: 600.0,
+            },
+        ];
 
         // // Negative on bottom
         // let points = vec![
