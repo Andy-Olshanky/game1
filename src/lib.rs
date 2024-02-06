@@ -1,14 +1,33 @@
 mod physics;
 
 use ggez::{
-    event::EventHandler,
-    graphics::{self, Canvas, Color, DrawParam},
-    Context, GameResult,
+    event::EventHandler, graphics::{self, Canvas, Color, DrawParam}, mint::Point2, Context, GameResult
 };
 pub use physics::{Circle, Floor, Gravity, Shape, Square};
 
 pub const SCREEN_SIZE: (f32, f32) = (1000.0, 700.0);
 const TARGET_FPS: f64 = 60.0;
+
+fn dot(point1: &Point2<f32>, point2: &Point2<f32>) -> f32 {
+    point1.x * point2.x + point1.y * point2.y
+}
+
+fn closest_point(start: &Point2<f32>, end: &Point2<f32>, t: f32, v: &Point2<f32>) -> Point2<f32> {
+    if t <= 0.0 {
+        *start
+    } else if t >= 1.0 {
+        *end
+    } else {
+        let x = start.x + t * v.x;
+        let y = start.y + t * v.y;
+
+        Point2 { x, y }
+    }
+}
+
+fn distance(point1: &Point2<f32>, point2: &Point2<f32>) -> f32 {
+    ((point2.x - point1.x).powi(2) + (point2.y - point1.y).powi(2)).sqrt()
+}
 
 pub struct GameState {
     square: Square,
@@ -20,7 +39,7 @@ pub struct GameState {
     circle: Circle,
 }
 
-// TODO: Reconfigure gravity and collision detection to work with any shape
+// TODO: Reconfigure collision detection to work with any shape
 // TODO: Snap to floor
 // TODO: Rotation oh god...
 impl GameState {
@@ -97,14 +116,13 @@ impl GameState {
     }
 
     fn circle_intersects_floor(&self, circle: &Circle) -> bool {
+        let center = circle.center;
         let radius = circle.radius;
-        let x = circle.center.x;
-        let y = circle.center.y;
 
-        let left = x - radius;
-        let right = x + radius;
-        let top = y - radius;
-        let bottom = y + radius;
+        let left = center.x - radius;
+        let right = center.x + radius;
+        let top = center.y - radius;
+        let bottom = center.y + radius;
 
         for i in 0..self.floor.points.len() - 1 {
             let start = self.floor.points[i];
@@ -129,19 +147,15 @@ impl GameState {
                     return true;
                 }
             } else {
-                if x >= start.x.min(end.x) - radius
-                    && x <= start.x.max(end.x) + radius
-                    && y >= start.y.min(end.y) - radius
-                    && y <= start.y.max(end.y) + radius
-                {
-                    let m = (end.y - start.y) / (end.x - start.x);
-                    let b = start.y - m * start.x;
+                let v = Point2 { x: end.x - start.x, y: end.y - start.y };
+                let w = Point2 { x: center.x - start.x, y: center.y - start.y };
 
-                    let floor_y = m * x + b;
+                let t = dot(&v, &w) / ((end.x - start.x).powi(2) + (end.y - start.y).powi(2));
 
-                    if y >= floor_y - radius && y <= floor_y + radius {
-                        return true;
-                    }
+                let closest_point = closest_point(&start, &end, t, &v);
+
+                if distance(&center, &closest_point) <= radius {
+                    return true;
                 }
             }
         }
@@ -204,17 +218,17 @@ impl EventHandler for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::BLACK);
 
-        // canvas.draw(
-        //     &graphics::Quad,
-        //     DrawParam::new()
-        //         .dest_rect(self.square.square)
-        //         .color(Color::WHITE),
-        // );
+        canvas.draw(
+            &graphics::Quad,
+            DrawParam::new()
+                .dest_rect(self.square.square)
+                .color(Color::WHITE),
+        );
 
-        // canvas.draw(&self.shape.shape, DrawParam::default());
-        // canvas.draw(&self.shape1.shape, DrawParam::default());
-        // canvas.draw(&self.shape2.shape, DrawParam::default());
-        // canvas.draw(&self.shape3.shape, DrawParam::default());
+        canvas.draw(&self.shape.shape, DrawParam::default());
+        canvas.draw(&self.shape1.shape, DrawParam::default());
+        canvas.draw(&self.shape2.shape, DrawParam::default());
+        canvas.draw(&self.shape3.shape, DrawParam::default());
         canvas.draw(&self.circle.circle, DrawParam::default());
         canvas.draw(&self.floor.line, DrawParam::default());
 
