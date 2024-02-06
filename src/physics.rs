@@ -59,7 +59,7 @@ impl Floor {
             Point2 { x: 0.0, y: 700.0 },
             Point2 {
                 x: SCREEN_SIZE.0,
-                y: 600.0,
+                y: 200.0,
             },
         ];
 
@@ -308,7 +308,7 @@ pub struct Circle {
 
 impl Gravity for Circle {
     fn apply_gravity(&mut self, dt: f64) {
-        self.velocity_y += Self::ACCELERATION * dt;
+        self.velocity_y += 0.1 * dt;
         if self.velocity_y > self.max_velocity_y {
             self.velocity_y = self.max_velocity_y;
         }
@@ -321,7 +321,7 @@ impl Circle {
         let radius = 50.0;
         let circle = Mesh::new_circle(ctx, DrawMode::fill(), center, radius, 0.01, Color::WHITE).unwrap();
 
-        Circle { circle, center, radius, velocity_x: 0.0, velocity_y: 0.0, max_velocity_x: 15.0, max_velocity_y: 15.0 }
+        Circle { circle, center, radius, velocity_x: 0.0, velocity_y: 0.0, max_velocity_x: 15.0, max_velocity_y: 1.0 }
     }
 
     pub fn move_position(&mut self, x: f32, y: f32, ctx: &mut Context) {
