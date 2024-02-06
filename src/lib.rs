@@ -182,6 +182,22 @@ impl EventHandler for GameState {
                 self.circle.velocity_x = 0.0;
                 self.circle.velocity_y = 0.0;
             }
+            if self.shape_intersects_floor(&self.shape) {
+                self.shape.velocity_x = 0.0;
+                self.shape.velocity_y = 0.0;
+            }
+            if self.shape_intersects_floor(&self.shape1) {
+                self.shape1.velocity_x = 0.0;
+                self.shape1.velocity_y = 0.0;
+            }
+            if self.shape_intersects_floor(&self.shape2) {
+                self.shape2.velocity_x = 0.0;
+                self.shape2.velocity_y = 0.0;
+            }
+            if self.shape_intersects_floor(&self.shape3) {
+                self.shape3.velocity_x = 0.0;
+                self.shape3.velocity_y = 0.0;
+            }
 
             self.square
                 .move_position(self.square.velocity_x as f32, self.square.velocity_y as f32);
