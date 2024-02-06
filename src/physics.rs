@@ -18,14 +18,14 @@ pub struct Floor {
 
 impl Floor {
     pub fn new(ctx: &mut Context) -> Floor {
-        // // Flat on bottom
-        // let points = vec![
-        //     Point2 { x: 0.0, y: 600.0 },
-        //     Point2 {
-        //         x: SCREEN_SIZE.0,
-        //         y: 600.0,
-        //     },
-        // ];
+        // Flat on bottom
+        let points = vec![
+            Point2 { x: 0.0, y: 600.0 },
+            Point2 {
+                x: SCREEN_SIZE.0,
+                y: 600.0,
+            },
+        ];
 
         // // Flat on top
         // let points = vec![
@@ -54,18 +54,18 @@ impl Floor {
         //     },
         // ];
 
-        // Positive on bottom
-        let points = vec![
-            Point2 { x: 0.0, y: 700.0 },
-            Point2 {
-                x: SCREEN_SIZE.0,
-                y: 200.0,
-            },
-        ];
+        // // Positive on bottom
+        // let points = vec![
+        //     Point2 { x: 0.0, y: 700.0 },
+        //     Point2 {
+        //         x: SCREEN_SIZE.0,
+        //         y: 200.0,
+        //     },
+        // ];
 
         // // Negative on bottom
         // let points = vec![
-        //     Point2 { x: 0.0, y: 600.0 },
+        //     Point2 { x: 0.0, y: 200.0 },
         //     Point2 {
         //         x: SCREEN_SIZE.0,
         //         y: 700.0,
@@ -74,7 +74,7 @@ impl Floor {
 
         // // Positive on top
         // let points = vec![
-        //     Point2 { x: 0.0, y: 100.0 },
+        //     Point2 { x: 0.0, y: 400.0 },
         //     Point2 {
         //         x: SCREEN_SIZE.0,
         //         y: 0.0,
@@ -86,13 +86,13 @@ impl Floor {
         //     Point2 { x: 0.0, y: 0.0 },
         //     Point2 {
         //         x: SCREEN_SIZE.0,
-        //         y: 100.0,
+        //         y: 400.0,
         //     },
         // ];
 
         // // Positive on right
         // let points = vec![
-        //     Point2 { x: 900.0, y: 0.0 },
+        //     Point2 { x: 500.0, y: 0.0 },
         //     Point2 {
         //         x: 1000.0,
         //         y: SCREEN_SIZE.1,
@@ -103,7 +103,7 @@ impl Floor {
         // let points = vec![
         //     Point2 { x: 1000.0, y: 0.0 },
         //     Point2 {
-        //         x: 900.0,
+        //         x: 500.0,
         //         y: SCREEN_SIZE.1,
         //     },
         // ];
@@ -112,14 +112,14 @@ impl Floor {
         // let points = vec![
         //     Point2 { x: 0.0, y: 0.0 },
         //     Point2 {
-        //         x: 100.0,
+        //         x: 500.0,
         //         y: SCREEN_SIZE.1,
         //     },
         // ];
 
         // // Negative on left
         // let points = vec![
-        //     Point2 { x: 100.0, y: 0.0 },
+        //     Point2 { x: 500.0, y: 0.0 },
         //     Point2 {
         //         x: 0.0,
         //         y: SCREEN_SIZE.1,
@@ -308,7 +308,7 @@ pub struct Circle {
 
 impl Gravity for Circle {
     fn apply_gravity(&mut self, dt: f64) {
-        self.velocity_y += 0.1 * dt;
+        self.velocity_y += Self::ACCELERATION * dt;
         if self.velocity_y > self.max_velocity_y {
             self.velocity_y = self.max_velocity_y;
         }
@@ -321,7 +321,7 @@ impl Circle {
         let radius = 50.0;
         let circle = Mesh::new_circle(ctx, DrawMode::fill(), center, radius, 0.01, Color::WHITE).unwrap();
 
-        Circle { circle, center, radius, velocity_x: 0.0, velocity_y: 0.0, max_velocity_x: 15.0, max_velocity_y: 1.0 }
+        Circle { circle, center, radius, velocity_x: 0.0, velocity_y: 0.0, max_velocity_x: 15.0, max_velocity_y: 15.0 }
     }
 
     pub fn move_position(&mut self, x: f32, y: f32, ctx: &mut Context) {
