@@ -37,52 +37,54 @@ impl GameState {
     }
 
     fn square_intersects_floor(&self, square: &Square) -> bool {
-        let start = self.floor.points[0];
-        let end = self.floor.points[1];
-
-        let x1 = start.x;
-        let y1 = start.y;
-        let x2 = end.x;
-        let y2 = end.y;
-
         let x = square.square.x;
         let y = square.square.y;
         let w = square.square.w;
         let h = square.square.h;
 
-        // Do the coordinates overlap at all
-        if (x1 < x && x2 < x)
-            || (x1 > x + w && x2 > x + w)
-            || (y1 < y && y2 < y)
-            || (y1 > y + h && y2 > y + h)
-        {
-            return false;
-        }
+        for i in 0..self.floor.points.len() - 1 {
+            let start = self.floor.points[i];
+            let end = self.floor.points[i + 1];
 
-        // Vertical Line
-        if x1 == x2 {
-            if x1 >= x && x2 <= x + w {
-                return true;
+            let x1 = start.x;
+            let y1 = start.y;
+            let x2 = end.x;
+            let y2 = end.y;
+
+            // Do the coordinates overlap at all
+            if (x1 < x && x2 < x)
+                || (x1 > x + w && x2 > x + w)
+                || (y1 < y && y2 < y)
+                || (y1 > y + h && y2 > y + h)
+            {
+                continue;
             }
-        }
-        // Horizontal Line
-        else if y1 == y2 {
-            if y1 >= y && y2 <= y + h {
-                return true;
-            }
-        } else {
-            let m_floor = (y2 - y1) / (x2 - x1);
-            let b_floor = y1 - m_floor * x1;
 
-            for corner in square.corners {
-                let m_square = -1.0 / m_floor;
-                let b_square = corner.y - m_square * corner.x;
-
-                let xi = (b_floor - b_square) / (m_square - m_floor);
-                let yi = m_floor * xi + b_floor;
-
-                if (x <= xi && xi <= x + w) && (y <= yi && yi <= y + h) {
+            // Vertical Line
+            if x1 == x2 {
+                if x1 >= x && x2 <= x + w {
                     return true;
+                }
+            }
+            // Horizontal Line
+            else if y1 == y2 {
+                if y1 >= y && y2 <= y + h {
+                    return true;
+                }
+            } else {
+                let m_floor = (y2 - y1) / (x2 - x1);
+                let b_floor = y1 - m_floor * x1;
+
+                for corner in square.corners {
+                    let m_square = -1.0 / m_floor;
+                    let b_square = corner.y - m_square * corner.x;
+
+                    let xi = (b_floor - b_square) / (m_square - m_floor);
+                    let yi = m_floor * xi + b_floor;
+
+                    if (x <= xi && xi <= x + w) && (y <= yi && yi <= y + h) {
+                        return true;
+                    }
                 }
             }
         }
@@ -95,37 +97,53 @@ impl GameState {
     }
 
     fn circle_intersects_floor(&self, circle: &Circle) -> bool {
-        let start = self.floor.points[0];
-        let end = self.floor.points[1];
-
+        let radius = circle.radius;
         let x = circle.center.x;
         let y = circle.center.y;
 
-        let left = x - circle.radius;
-        let right = x + circle.radius;
-        let top = y - circle.radius;
-        let bottom = y + circle.radius;
+        let left = x - radius;
+        let right = x + radius;
+        let top = y - radius;
+        let bottom = y + radius;
 
-        if start.x < left && end.x < left
-            || start.x > right && end.x > right
-            || start.y > bottom && end.y > bottom
-            || start.y < top && end.y < top
-        {
-            return false;
-        } 
-        // Vertical line
-        if start.x == end.x {
-            if start.x >= left && end.x <= right {
-                return true;
+        for i in 0..self.floor.points.len() - 1 {
+            let start = self.floor.points[i];
+            let end = self.floor.points[i + 1];
+
+            if start.x < left && end.x < left
+                || start.x > right && end.x > right
+                || start.y > bottom && end.y > bottom
+                || start.y < top && end.y < top
+            {
+                continue;
             }
-        }
-        // Horizontal line
-        if start.y == end.y {
-            if start.y >= top && end.y <= bottom {
-                return true;
+            // Vertical line
+            if start.x == end.x {
+                if start.x >= left && end.x <= right {
+                    return true;
+                }
             }
-        } else {
-            
+            // Horizontal line
+            if start.y == end.y {
+                if start.y >= top && end.y <= bottom {
+                    return true;
+                }
+            } else {
+                if x >= start.x.min(end.x) - radius
+                    && x <= start.x.max(end.x) + radius
+                    && y >= start.y.min(end.y) - radius
+                    && y <= start.y.max(end.y) + radius
+                {
+                    let m = (end.y - start.y) / (end.x - start.x);
+                    let b = start.y - m * start.x;
+
+                    let floor_y = m * x + b;
+
+                    if y >= floor_y - radius && y <= floor_y + radius {
+                        return true;
+                    }
+                }
+            }
         }
 
         false
