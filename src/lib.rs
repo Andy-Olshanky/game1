@@ -1,7 +1,10 @@
 mod physics;
 
 use ggez::{
-    event::EventHandler, graphics::{self, Canvas, Color, DrawParam}, mint::Point2, Context, GameResult
+    event::EventHandler,
+    graphics::{self, Canvas, Color, DrawParam},
+    mint::Point2,
+    Context, GameResult,
 };
 pub use physics::{Circle, Floor, Gravity, Shape, Square};
 
@@ -112,6 +115,50 @@ impl GameState {
     }
 
     fn shape_intersects_floor(&self, shape: &Shape) -> bool {
+        let num_corners = shape.corners.len();
+        for segment in 0..self.floor.points.len() - 1 {
+            let start = self.floor.points[segment];
+            let end = self.floor.points[segment + 1];
+
+            for i in 0..num_corners {
+                let corner1 = shape.corners[i];
+                let corner2 = shape.corners[(i + 1) % num_corners];
+
+                if start.x < corner1.x
+                    && end.x < corner1.x
+                    && start.x < corner2.x
+                    && end.x < corner2.x
+                    || start.x > corner1.x
+                        && end.x > corner1.x
+                        && start.x > corner2.x
+                        && end.x > corner2.x
+                    || start.y < corner1.y
+                        && end.y < corner1.y
+                        && start.y < corner2.y
+                        && end.y < corner2.y
+                    || start.y > corner1.y
+                        && end.y > corner1.y
+                        && start.y > corner2.y
+                        && end.y > corner2.y
+                {
+                    continue;
+                }
+
+                // Horizontal floor
+                if start.y == end.y {
+                    
+                }
+                // Vertical floor
+                else if start.x == end.x {
+
+                }
+                // Sloped floor
+                else {
+
+                }
+            }
+        }
+
         false
     }
 
@@ -147,8 +194,14 @@ impl GameState {
                     return true;
                 }
             } else {
-                let v = Point2 { x: end.x - start.x, y: end.y - start.y };
-                let w = Point2 { x: center.x - start.x, y: center.y - start.y };
+                let v = Point2 {
+                    x: end.x - start.x,
+                    y: end.y - start.y,
+                };
+                let w = Point2 {
+                    x: center.x - start.x,
+                    y: center.y - start.y,
+                };
 
                 let t = dot(&v, &w) / ((end.x - start.x).powi(2) + (end.y - start.y).powi(2));
 
