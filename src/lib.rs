@@ -146,7 +146,11 @@ impl GameState {
 
                 // Horizontal floor
                 if start.y == end.y {
-                    
+                    if corner1.y == corner2.y {
+                        if corner1.y == start.y {
+                            return true;
+                        }
+                    }
                 }
                 // Vertical floor
                 else if start.x == end.x {
