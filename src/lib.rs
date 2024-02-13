@@ -7,7 +7,8 @@ use ggez::{
 use nalgebra::{vector, Vector2};
 use rapier2d::{
     dynamics::{
-        CCDSolver, ImpulseJointSet, IntegrationParameters, IslandManager, MultibodyJointSet, RigidBodyBuilder, RigidBodyHandle, RigidBodySet
+        CCDSolver, ImpulseJointSet, IntegrationParameters, IslandManager, MultibodyJointSet,
+        RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
     },
     geometry::{BroadPhase, ColliderBuilder, ColliderSet, NarrowPhase},
     pipeline::{PhysicsPipeline, QueryPipeline},
@@ -53,16 +54,20 @@ pub struct World {
     multibody_joint_set: MultibodyJointSet,
     ccd_solver: CCDSolver,
     query_pipeline: QueryPipeline,
-    handle: RigidBodyHandle,
+    handle1: RigidBodyHandle,
+    handle2: RigidBodyHandle,
+    handle3: RigidBodyHandle,
 }
 
 impl World {
     pub fn new(
         rigid_body_set: RigidBodySet,
         collider_set: ColliderSet,
-        handle: RigidBodyHandle,
+        handle1: RigidBodyHandle,
+        handle2: RigidBodyHandle,
+        handle3: RigidBodyHandle,
     ) -> Self {
-        let gravity = vector![0.0, -9.8];
+        let gravity = vector![0.0, -9.81];
         let integration_parameters = IntegrationParameters::default();
         let physics_pipeline = PhysicsPipeline::new();
         let island_manager = IslandManager::new();
@@ -86,13 +91,16 @@ impl World {
             multibody_joint_set,
             ccd_solver,
             query_pipeline,
-            handle,
+            handle1,
+            handle2,
+            handle3,
         }
     }
 }
 
 pub struct GameState {
     ball: Ball,
+    ball2: Ball,
     floor: Floor,
     world: World,
 }
@@ -104,20 +112,48 @@ impl GameState {
 
         let floor = Floor::new(ctx).unwrap();
 
-        let collider = ColliderBuilder::cuboid(floor.floor.width() as f32, floor.floor.height() as f32).build();
+        let collider =
+            ColliderBuilder::cuboid(floor.floor.width() as f32, floor.floor.height() as f32)
+                .translation(vector![0.0, SCREEN_SIZE.1 - 25.0])
+                .build();
+        collider_set.insert(collider);
+        let collider =
+            ColliderBuilder::cuboid(floor.floor.width() as f32, floor.floor.height() as f32)
+                .build();
         collider_set.insert(collider);
 
         let rigid_body = RigidBodyBuilder::dynamic()
-            .translation(vector![0.0, 250.0])
+            .translation(vector![0.0, 600.0])
             .build();
-        let collider = ColliderBuilder::ball(0.5).restitution(0.7).build();
-        let ball_body_handle = rigid_body_set.insert(rigid_body);
-        collider_set.insert_with_parent(collider, ball_body_handle, &mut rigid_body_set);
+        let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
+        let ball_body_handle1 = rigid_body_set.insert(rigid_body);
+        collider_set.insert_with_parent(collider, ball_body_handle1, &mut rigid_body_set);
+
+        let rigid_body = RigidBodyBuilder::dynamic()
+            .translation(vector![0.0, 500.0])
+            .build();
+        let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
+        let ball_body_handle2 = rigid_body_set.insert(rigid_body);
+        collider_set.insert_with_parent(collider, ball_body_handle2, &mut rigid_body_set);
+
+        let rigid_body = RigidBodyBuilder::dynamic()
+            .translation(vector![0.0, 400.0])
+            .build();
+        let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
+        let ball_body_handle3 = rigid_body_set.insert(rigid_body);
+        collider_set.insert_with_parent(collider, ball_body_handle3, &mut rigid_body_set);
 
         Ok(GameState {
             ball: Ball::new(ctx).unwrap(),
+            ball2: Ball::new(ctx).unwrap(),
             floor,
-            world: World::new(rigid_body_set, collider_set, ball_body_handle),
+            world: World::new(
+                rigid_body_set,
+                collider_set,
+                ball_body_handle1,
+                ball_body_handle2,
+                ball_body_handle3,
+            ),
         })
     }
 }
@@ -150,10 +186,44 @@ impl EventHandler for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::BLACK);
 
-        let coords = &self.world.rigid_body_set[self.world.handle].translation();
-        canvas.draw(&self.ball.ball, DrawParam::default().dest(Point2 { x: coords.x, y: SCREEN_SIZE.1 - coords.y - 32.0 }));
+        canvas.draw(
+            &self.floor.floor,
+            DrawParam::default().dest(Point2 { x: 0.0, y: 0.0 }),
+        );
+        canvas.draw(
+            &self.floor.floor,
+            DrawParam::default().dest(Point2 {
+                x: 0.0,
+                y: SCREEN_SIZE.1 - self.floor.floor.height() as f32,
+            }),
+        );
 
-        canvas.draw(&self.floor.floor, DrawParam::default().dest(Point2 { x: 0.0, y: SCREEN_SIZE.1 - self.floor.floor.height() as f32 }));
+        let coords = &self.world.rigid_body_set[self.world.handle1].translation();
+        canvas.draw(
+            &self.ball.ball,
+            DrawParam::default().dest(Point2 {
+                x: coords.x,
+                y: SCREEN_SIZE.1 - coords.y - 32.0,
+            }),
+        );
+
+        let coords = &self.world.rigid_body_set[self.world.handle2].translation();
+        canvas.draw(
+            &self.ball2.ball,
+            DrawParam::default().dest(Point2 {
+                x: coords.x,
+                y: SCREEN_SIZE.1 - coords.y - 32.0,
+            }),
+        );
+
+        let coords = &self.world.rigid_body_set[self.world.handle3].translation();
+        canvas.draw(
+            &self.ball2.ball,
+            DrawParam::default().dest(Point2 {
+                x: coords.x,
+                y: SCREEN_SIZE.1 - coords.y - 32.0,
+            }),
+        );
 
         canvas.finish(ctx)?;
 
