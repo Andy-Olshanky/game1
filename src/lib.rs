@@ -28,6 +28,18 @@ impl Ball {
     }
 }
 
+pub struct Floor {
+    floor: Image,
+}
+
+impl Floor {
+    pub fn new(ctx: &mut Context) -> GameResult<Self> {
+        let floor = Image::from_path(ctx, "\\floor.png")?;
+
+        Ok(Self { floor })
+    }
+}
+
 pub struct World {
     gravity: Vector2<f32>,
     integration_parameters: IntegrationParameters,
@@ -81,6 +93,7 @@ impl World {
 
 pub struct GameState {
     ball: Ball,
+    floor: Floor,
     world: World,
 }
 
@@ -89,7 +102,9 @@ impl GameState {
         let mut rigid_body_set = RigidBodySet::new();
         let mut collider_set = ColliderSet::new();
 
-        let collider = ColliderBuilder::cuboid(100.0, 1.0).build();
+        let floor = Floor::new(ctx).unwrap();
+
+        let collider = ColliderBuilder::cuboid(floor.floor.width() as f32, floor.floor.height() as f32).build();
         collider_set.insert(collider);
 
         let rigid_body = RigidBodyBuilder::dynamic()
@@ -101,6 +116,7 @@ impl GameState {
 
         Ok(GameState {
             ball: Ball::new(ctx).unwrap(),
+            floor,
             world: World::new(rigid_body_set, collider_set, ball_body_handle),
         })
     }
@@ -136,6 +152,8 @@ impl EventHandler for GameState {
 
         let coords = &self.world.rigid_body_set[self.world.handle].translation();
         canvas.draw(&self.ball.ball, DrawParam::default().dest(Point2 { x: coords.x, y: SCREEN_SIZE.1 - coords.y - 32.0 }));
+
+        canvas.draw(&self.floor.floor, DrawParam::default().dest(Point2 { x: 0.0, y: SCREEN_SIZE.1 - self.floor.floor.height() as f32 }));
 
         canvas.finish(ctx)?;
 
