@@ -113,12 +113,12 @@ impl GameState {
         let floor = Floor::new(ctx).unwrap();
 
         let collider =
-            ColliderBuilder::cuboid(floor.floor.width() as f32, floor.floor.height() as f32)
+            ColliderBuilder::cuboid(floor.floor.width() as f32, floor.floor.height() as f32 / 2.0)
                 .translation(vector![0.0, SCREEN_SIZE.1 - 25.0])
                 .build();
         collider_set.insert(collider);
         let collider =
-            ColliderBuilder::cuboid(floor.floor.width() as f32, floor.floor.height() as f32)
+            ColliderBuilder::cuboid(floor.floor.width() as f32, floor.floor.height() as f32 / 2.0)
                 .build();
         collider_set.insert(collider);
 
@@ -184,7 +184,7 @@ impl EventHandler for GameState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        let mut canvas = Canvas::from_frame(ctx, graphics::Color::BLACK);
+        let mut canvas = Canvas::from_frame(ctx, graphics::Color::RED);
 
         canvas.draw(
             &self.floor.floor,
