@@ -10,9 +10,10 @@ use rapier2d::{
         CCDSolver, ImpulseJointSet, IntegrationParameters, IslandManager, MultibodyJointSet,
         RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
     },
-    geometry::{BroadPhase, ColliderBuilder, ColliderSet, NarrowPhase},
+    geometry::{BroadPhase, ColliderBuilder, ColliderHandle, ColliderSet, NarrowPhase},
     pipeline::{PhysicsPipeline, QueryPipeline},
 };
+use std::f32::consts::PI;
 
 pub const SCREEN_SIZE: (f32, f32) = (1000.0, 700.0);
 const TARGET_FPS: f64 = 60.0;
@@ -55,6 +56,7 @@ pub struct World {
     ccd_solver: CCDSolver,
     query_pipeline: QueryPipeline,
     handle: RigidBodyHandle,
+    chandle: ColliderHandle
 }
 
 impl World {
@@ -63,6 +65,7 @@ impl World {
         collider_set: ColliderSet,
         handle: RigidBodyHandle,
         gravity: Vector2<f32>,
+        chandle: ColliderHandle,
     ) -> Self {
         // let gravity = vector![50.0, 0.0];
         // let gravity = vector![0.0, -50.0];
@@ -90,6 +93,7 @@ impl World {
             ccd_solver,
             query_pipeline,
             handle,
+            chandle,
         }
     }
 }
@@ -101,6 +105,7 @@ pub struct GameState {
     world2: World,
     world3: World,
     world4: World,
+    floor_rotation: f32,
 }
 
 impl GameState {
@@ -113,37 +118,40 @@ impl GameState {
 
         let floor = Floor::new(ctx).unwrap();
 
-        let collider =
-            ColliderBuilder::cuboid(floor.floor.width() as f32 / 2.0, floor.floor.height() as f32 / 2.0)
-                .translation(vector![300.0, 500.0])
-                .build();
-        collider_set.insert(collider);
+        let collider = ColliderBuilder::cuboid(
+            floor.floor.width() as f32 / 2.0,
+            floor.floor.height() as f32 / 2.0,
+        )
+        .translation(vector![300.0, 500.0])
+        .rotation(PI / 3.0)
+        .build();
+        let chandle = collider_set.insert(collider);
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![310.0, 600.0])
             .build();
-        let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
+        let collider = ColliderBuilder::ball(16.0).restitution(0.3).build();
         let ball_body_handle1 = rigid_body_set1.insert(rigid_body);
         collider_set.insert_with_parent(collider, ball_body_handle1, &mut rigid_body_set1);
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![600.0, 500.0])
             .build();
-        let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
+        let collider = ColliderBuilder::ball(16.0).restitution(0.3).build();
         let ball_body_handle2 = rigid_body_set2.insert(rigid_body);
         collider_set.insert_with_parent(collider, ball_body_handle2, &mut rigid_body_set2);
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![310.0, 400.0])
             .build();
-        let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
+        let collider = ColliderBuilder::ball(16.0).restitution(0.3).build();
         let ball_body_handle3 = rigid_body_set3.insert(rigid_body);
         collider_set.insert_with_parent(collider, ball_body_handle3, &mut rigid_body_set3);
-        
+
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![150.0, 500.0])
             .build();
-        let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
+        let collider = ColliderBuilder::ball(16.0).restitution(0.3).build();
         let ball_body_handle4 = rigid_body_set4.insert(rigid_body);
         collider_set.insert_with_parent(collider, ball_body_handle4, &mut rigid_body_set4);
 
@@ -154,26 +162,31 @@ impl GameState {
                 rigid_body_set1,
                 collider_set.clone(),
                 ball_body_handle1,
-                vector![0.0, -50.0],
+                vector![0.0, -100.0],
+                chandle,
             ),
             world2: World::new(
                 rigid_body_set2,
                 collider_set.clone(),
                 ball_body_handle2,
-                vector![-50.0, 0.0],
+                vector![-100.0, 0.0],
+                chandle,
             ),
             world3: World::new(
                 rigid_body_set3,
                 collider_set.clone(),
                 ball_body_handle3,
-                vector![0.0, 50.0],
+                vector![0.0, 100.0],
+                chandle,
             ),
             world4: World::new(
                 rigid_body_set4,
                 collider_set,
                 ball_body_handle4,
-                vector![50.0, 0.0],
+                vector![100.0, 0.0],
+                chandle,
             ),
+            floor_rotation: 0.0,
         })
     }
 }
@@ -198,7 +211,7 @@ impl EventHandler for GameState {
                 &physics_hooks,
                 &event_handler,
             );
-            
+
             self.world2.physics_pipeline.step(
                 &self.world2.gravity,
                 &self.world2.integration_parameters,
@@ -214,7 +227,7 @@ impl EventHandler for GameState {
                 &physics_hooks,
                 &event_handler,
             );
-            
+
             self.world3.physics_pipeline.step(
                 &self.world3.gravity,
                 &self.world3.integration_parameters,
@@ -230,7 +243,7 @@ impl EventHandler for GameState {
                 &physics_hooks,
                 &event_handler,
             );
-            
+
             self.world4.physics_pipeline.step(
                 &self.world4.gravity,
                 &self.world4.integration_parameters,
@@ -246,6 +259,8 @@ impl EventHandler for GameState {
                 &physics_hooks,
                 &event_handler,
             );
+
+            self.floor_rotation += 1.0;
         }
 
         Ok(())
@@ -267,10 +282,15 @@ impl EventHandler for GameState {
         );
         canvas.draw(
             &self.floor.floor,
-            DrawParam::default().dest(Point2 {
-                x: 300.0 - self.floor.floor.width() as f32 + 66.0,
-                y: SCREEN_SIZE.1 - 500.0 - self.floor.floor.height() as f32 - 3.0,
-            }),
+            DrawParam::default()
+                .dest(Point2 {
+                    // x: 300.0 - self.floor.floor.width() as f32 + 66.0,
+                    // y: SCREEN_SIZE.1 - 500.0 - self.floor.floor.height() as f32 - 3.0,
+                    x: 300.0 + 16.0,
+                    y: SCREEN_SIZE.1 - 500.0 - self.floor.floor.height() as f32 / 2.0 - 3.0
+                })
+                .offset(Point2 { x: 0.5, y: 0.5 })
+                .rotation(-PI / 3.0),
         );
 
         let coords = &self.world1.rigid_body_set[self.world1.handle].translation();
