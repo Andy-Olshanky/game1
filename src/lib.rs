@@ -54,22 +54,17 @@ pub struct World {
     multibody_joint_set: MultibodyJointSet,
     ccd_solver: CCDSolver,
     query_pipeline: QueryPipeline,
-    handle1: RigidBodyHandle,
-    handle2: RigidBodyHandle,
-    handle3: RigidBodyHandle,
-    handle4: RigidBodyHandle,
+    handle: RigidBodyHandle,
 }
 
 impl World {
     pub fn new(
         rigid_body_set: RigidBodySet,
         collider_set: ColliderSet,
-        handle1: RigidBodyHandle,
-        handle2: RigidBodyHandle,
-        handle3: RigidBodyHandle,
-        handle4: RigidBodyHandle,
+        handle: RigidBodyHandle,
+        gravity: Vector2<f32>,
     ) -> Self {
-        let gravity = vector![50.0, 0.0];
+        // let gravity = vector![50.0, 0.0];
         // let gravity = vector![0.0, -50.0];
         let integration_parameters = IntegrationParameters::default();
         let physics_pipeline = PhysicsPipeline::new();
@@ -94,10 +89,7 @@ impl World {
             multibody_joint_set,
             ccd_solver,
             query_pipeline,
-            handle1,
-            handle2,
-            handle3,
-            handle4,
+            handle,
         }
     }
 }
@@ -105,12 +97,18 @@ impl World {
 pub struct GameState {
     ball: Ball,
     floor: Floor,
-    world: World,
+    world1: World,
+    world2: World,
+    world3: World,
+    world4: World,
 }
 
 impl GameState {
     pub fn new(ctx: &mut Context) -> GameResult<Self> {
-        let mut rigid_body_set = RigidBodySet::new();
+        let mut rigid_body_set1 = RigidBodySet::new();
+        let mut rigid_body_set2 = RigidBodySet::new();
+        let mut rigid_body_set3 = RigidBodySet::new();
+        let mut rigid_body_set4 = RigidBodySet::new();
         let mut collider_set = ColliderSet::new();
 
         let floor = Floor::new(ctx).unwrap();
@@ -122,43 +120,59 @@ impl GameState {
         collider_set.insert(collider);
 
         let rigid_body = RigidBodyBuilder::dynamic()
-            .translation(vector![350.0, 600.0])
+            .translation(vector![310.0, 600.0])
             .build();
         let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
-        let ball_body_handle1 = rigid_body_set.insert(rigid_body);
-        collider_set.insert_with_parent(collider, ball_body_handle1, &mut rigid_body_set);
+        let ball_body_handle1 = rigid_body_set1.insert(rigid_body);
+        collider_set.insert_with_parent(collider, ball_body_handle1, &mut rigid_body_set1);
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![600.0, 500.0])
             .build();
         let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
-        let ball_body_handle2 = rigid_body_set.insert(rigid_body);
-        collider_set.insert_with_parent(collider, ball_body_handle2, &mut rigid_body_set);
+        let ball_body_handle2 = rigid_body_set2.insert(rigid_body);
+        collider_set.insert_with_parent(collider, ball_body_handle2, &mut rigid_body_set2);
 
         let rigid_body = RigidBodyBuilder::dynamic()
-            .translation(vector![350.0, 400.0])
+            .translation(vector![310.0, 400.0])
             .build();
         let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
-        let ball_body_handle3 = rigid_body_set.insert(rigid_body);
-        collider_set.insert_with_parent(collider, ball_body_handle3, &mut rigid_body_set);
+        let ball_body_handle3 = rigid_body_set3.insert(rigid_body);
+        collider_set.insert_with_parent(collider, ball_body_handle3, &mut rigid_body_set3);
         
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![150.0, 500.0])
             .build();
         let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
-        let ball_body_handle4 = rigid_body_set.insert(rigid_body);
-        collider_set.insert_with_parent(collider, ball_body_handle4, &mut rigid_body_set);
+        let ball_body_handle4 = rigid_body_set4.insert(rigid_body);
+        collider_set.insert_with_parent(collider, ball_body_handle4, &mut rigid_body_set4);
 
         Ok(GameState {
             ball: Ball::new(ctx).unwrap(),
             floor,
-            world: World::new(
-                rigid_body_set,
-                collider_set,
+            world1: World::new(
+                rigid_body_set1,
+                collider_set.clone(),
                 ball_body_handle1,
+                vector![0.0, -50.0],
+            ),
+            world2: World::new(
+                rigid_body_set2,
+                collider_set.clone(),
                 ball_body_handle2,
+                vector![-50.0, 0.0],
+            ),
+            world3: World::new(
+                rigid_body_set3,
+                collider_set.clone(),
                 ball_body_handle3,
+                vector![0.0, 50.0],
+            ),
+            world4: World::new(
+                rigid_body_set4,
+                collider_set,
                 ball_body_handle4,
+                vector![50.0, 0.0],
             ),
         })
     }
@@ -169,18 +183,66 @@ impl EventHandler for GameState {
         let physics_hooks = ();
         let event_handler = ();
         while ctx.time.check_update_time(TARGET_FPS as u32) {
-            self.world.physics_pipeline.step(
-                &self.world.gravity,
-                &self.world.integration_parameters,
-                &mut self.world.island_manager,
-                &mut self.world.broad_phase,
-                &mut self.world.narrow_phase,
-                &mut self.world.rigid_body_set,
-                &mut self.world.collider_set,
-                &mut self.world.impulse_joint_set,
-                &mut self.world.multibody_joint_set,
-                &mut self.world.ccd_solver,
-                Some(&mut self.world.query_pipeline),
+            self.world1.physics_pipeline.step(
+                &self.world1.gravity,
+                &self.world1.integration_parameters,
+                &mut self.world1.island_manager,
+                &mut self.world1.broad_phase,
+                &mut self.world1.narrow_phase,
+                &mut self.world1.rigid_body_set,
+                &mut self.world1.collider_set,
+                &mut self.world1.impulse_joint_set,
+                &mut self.world1.multibody_joint_set,
+                &mut self.world1.ccd_solver,
+                Some(&mut self.world1.query_pipeline),
+                &physics_hooks,
+                &event_handler,
+            );
+            
+            self.world2.physics_pipeline.step(
+                &self.world2.gravity,
+                &self.world2.integration_parameters,
+                &mut self.world2.island_manager,
+                &mut self.world2.broad_phase,
+                &mut self.world2.narrow_phase,
+                &mut self.world2.rigid_body_set,
+                &mut self.world2.collider_set,
+                &mut self.world2.impulse_joint_set,
+                &mut self.world2.multibody_joint_set,
+                &mut self.world2.ccd_solver,
+                Some(&mut self.world2.query_pipeline),
+                &physics_hooks,
+                &event_handler,
+            );
+            
+            self.world3.physics_pipeline.step(
+                &self.world3.gravity,
+                &self.world3.integration_parameters,
+                &mut self.world3.island_manager,
+                &mut self.world3.broad_phase,
+                &mut self.world3.narrow_phase,
+                &mut self.world3.rigid_body_set,
+                &mut self.world3.collider_set,
+                &mut self.world3.impulse_joint_set,
+                &mut self.world3.multibody_joint_set,
+                &mut self.world3.ccd_solver,
+                Some(&mut self.world3.query_pipeline),
+                &physics_hooks,
+                &event_handler,
+            );
+            
+            self.world4.physics_pipeline.step(
+                &self.world4.gravity,
+                &self.world4.integration_parameters,
+                &mut self.world4.island_manager,
+                &mut self.world4.broad_phase,
+                &mut self.world4.narrow_phase,
+                &mut self.world4.rigid_body_set,
+                &mut self.world4.collider_set,
+                &mut self.world4.impulse_joint_set,
+                &mut self.world4.multibody_joint_set,
+                &mut self.world4.ccd_solver,
+                Some(&mut self.world4.query_pipeline),
                 &physics_hooks,
                 &event_handler,
             );
@@ -211,7 +273,7 @@ impl EventHandler for GameState {
             }),
         );
 
-        let coords = &self.world.rigid_body_set[self.world.handle1].translation();
+        let coords = &self.world1.rigid_body_set[self.world1.handle].translation();
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
@@ -220,7 +282,7 @@ impl EventHandler for GameState {
             }),
         );
 
-        let coords = &self.world.rigid_body_set[self.world.handle2].translation();
+        let coords = &self.world2.rigid_body_set[self.world2.handle].translation();
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
@@ -229,7 +291,7 @@ impl EventHandler for GameState {
             }),
         );
 
-        let coords = &self.world.rigid_body_set[self.world.handle3].translation();
+        let coords = &self.world3.rigid_body_set[self.world3.handle].translation();
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
@@ -238,7 +300,7 @@ impl EventHandler for GameState {
             }),
         );
 
-        let coords = &self.world.rigid_body_set[self.world.handle4].translation();
+        let coords = &self.world4.rigid_body_set[self.world4.handle].translation();
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
