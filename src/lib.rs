@@ -206,7 +206,7 @@ impl EventHandler for GameState {
         canvas.draw(
             &self.floor.floor,
             DrawParam::default().dest(Point2 {
-                x: 300.0 - self.floor.floor.width() as f32 / 2.0,
+                x: 300.0 - self.floor.floor.width() as f32 + 66.0,
                 y: SCREEN_SIZE.1 - 500.0 - self.floor.floor.height() as f32 - 3.0,
             }),
         );
