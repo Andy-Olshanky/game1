@@ -127,9 +127,9 @@ impl GameState {
         let floor = Floor::new(ctx).unwrap();
 
         let floor_body = RigidBodyBuilder::dynamic()
-        .lock_translations()
+            .lock_translations()
             // .rotation(PI / 3.0)
-            .angvel(PI)
+            .angvel(PI / 6.0)
             .build();
 
         let floor_handle1 = rigid_body_set1.insert(floor_body.clone());
@@ -150,28 +150,28 @@ impl GameState {
         let floor_collider_handle3 = collider_set3.insert_with_parent(collider.clone(), floor_handle3, &mut rigid_body_set3);
         let floor_collider_handle4 = collider_set4.insert_with_parent(collider.clone(), floor_handle4, &mut rigid_body_set4);
 
-        let rigid_body = RigidBodyBuilder::fixed()
+        let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![310.0, 600.0])
             .build();
         let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
         let ball_body_handle1 = rigid_body_set1.insert(rigid_body);
         collider_set1.insert_with_parent(collider, ball_body_handle1, &mut rigid_body_set1);
 
-        let rigid_body = RigidBodyBuilder::fixed()
+        let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![600.0, 500.0])
             .build();
         let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
         let ball_body_handle2 = rigid_body_set2.insert(rigid_body);
         collider_set2.insert_with_parent(collider, ball_body_handle2, &mut rigid_body_set2);
 
-        let rigid_body = RigidBodyBuilder::fixed()
+        let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![310.0, 400.0])
             .build();
         let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
         let ball_body_handle3 = rigid_body_set3.insert(rigid_body);
         collider_set3.insert_with_parent(collider, ball_body_handle3, &mut rigid_body_set3);
 
-        let rigid_body = RigidBodyBuilder::fixed()
+        let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![150.0, 500.0])
             .build();
         let collider = ColliderBuilder::ball(16.0).restitution(0.0).build();
@@ -293,13 +293,14 @@ impl EventHandler for GameState {
 
             self.floor_rotation += self.world1.floor_body.angvel() / TARGET_FPS as f32;
 
-            for rb in self.world1.rigid_body_set.iter() {
-                println!("{:?}", rb);
-            }
+            // for rb in self.world1.rigid_body_set.iter() {
+            //     println!("{:?}", rb.1);
+            // }
 
-            println!("*******************************************");
-            println!("{}", self.world1.floor_body.position().rotation);
-            println!("*******************************************");
+            // println!("*******************************************");
+            // let floor_body = &self.world1.rigid_body_set[self.world1.floor_handle];
+            // println!("{}", floor_body.position().rotation.angle());
+            // println!("*******************************************");
         }
 
         Ok(())
@@ -322,6 +323,7 @@ impl EventHandler for GameState {
 
         let floor_body = self.world1.rigid_body_set.get(self.world1.floor_handle).unwrap();
         let rotation = floor_body.rotation().angle();
+        // println!("Rotation: {}", rotation);
         canvas.draw(
             &self.floor.floor,
             DrawParam::default()
@@ -332,7 +334,7 @@ impl EventHandler for GameState {
                     y: SCREEN_SIZE.1 - 500.0 - self.floor.floor.height() as f32 / 2.0 - 3.0
                 })
                 .offset(Point2 { x: 0.5, y: 0.5 })
-                // .rotation(-self.floor_rotation),
+                .rotation(-rotation),
         );
 
         let coords = &self.world1.rigid_body_set[self.world1.handle].translation();
