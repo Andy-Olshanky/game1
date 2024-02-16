@@ -56,7 +56,6 @@ pub struct World {
     query_pipeline: QueryPipeline,
     handle: RigidBodyHandle,
     floor_handle: RigidBodyHandle,
-    floor_body: RigidBody,
     floor_collider_handle: ColliderHandle
 }
 
@@ -67,7 +66,6 @@ impl World {
         handle: RigidBodyHandle,
         gravity: Vector2<f32>,
         floor_handle: RigidBodyHandle,
-        floor_body: RigidBody,
         floor_collider_handle: ColliderHandle
     ) -> Self {
         // let gravity = vector![50.0, 0.0];
@@ -97,7 +95,6 @@ impl World {
             query_pipeline,
             handle,
             floor_handle,
-            floor_body,
             floor_collider_handle
         }
     }
@@ -187,7 +184,6 @@ impl GameState {
                 ball_body_handle1,
                 vector![0.0, -100.0],
                 floor_handle1,
-                floor_body.clone(),
                 floor_collider_handle1
             ),
             world2: World::new(
@@ -196,7 +192,6 @@ impl GameState {
                 ball_body_handle2,
                 vector![-100.0, 0.0],
                 floor_handle2,
-                floor_body.clone(),
                 floor_collider_handle2
             ),
             world3: World::new(
@@ -205,7 +200,6 @@ impl GameState {
                 ball_body_handle3,
                 vector![0.0, 100.0],
                 floor_handle3,
-                floor_body.clone(),
                 floor_collider_handle3
             ),
             world4: World::new(
@@ -214,7 +208,6 @@ impl GameState {
                 ball_body_handle4,
                 vector![100.0, 0.0],
                 floor_handle4,
-                floor_body.clone(),
                 floor_collider_handle4
             ),
             floor_rotation: 0.0,
