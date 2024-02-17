@@ -286,15 +286,6 @@ impl EventHandler for GameState {
                 &physics_hooks,
                 &event_handler,
             );
-
-            // for rb in self.world1.rigid_body_set.iter() {
-            //     println!("{:?}", rb.1);
-            // }
-
-            // println!("*******************************************");
-            // let floor_body = &self.world1.rigid_body_set[self.world1.floor_handle];
-            // println!("{}", floor_body.position().rotation.angle());
-            // println!("*******************************************");
         }
 
         Ok(())
@@ -303,31 +294,18 @@ impl EventHandler for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::RED);
 
-        canvas.draw(
-            &self.floor.floor,
-            DrawParam::default().dest(Point2 { x: 0.0, y: 0.0 }),
-        );
-        canvas.draw(
-            &self.floor.floor,
-            DrawParam::default().dest(Point2 {
-                x: 0.0,
-                y: SCREEN_SIZE.1 - self.floor.floor.height() as f32,
-            }),
-        );
-
         let floor_body = self
             .world1
             .rigid_body_set
             .get(self.world1.floor_handle)
             .unwrap();
         let rotation = floor_body.rotation().angle();
-        // println!("Rotation: {}", rotation);
+
+        // Values for the 100x25 floor
         canvas.draw(
             &self.floor.floor,
             DrawParam::default()
                 .dest(Point2 {
-                    // x: 300.0 - self.floor.floor.width() as f32 + 66.0,
-                    // y: SCREEN_SIZE.1 - 500.0 - self.floor.floor.height() as f32 - 3.0,
                     x: 300.0 + 16.0,
                     y: SCREEN_SIZE.1 - 500.0 - self.floor.floor.height() as f32 / 2.0 - 3.0,
                 })
