@@ -126,8 +126,7 @@ impl GameState {
 
         let floor_body = RigidBodyBuilder::kinematic_velocity_based()
             .lock_translations()
-            // .rotation(PI / 3.0)
-            .angvel(PI / 6.0)
+            // .angvel(PI / 6.0)
             .build();
 
         let floor_handle1 = rigid_body_set1.insert(floor_body.clone());
@@ -140,7 +139,6 @@ impl GameState {
             floor.floor.height() as f32 / 2.0,
         )
         .translation(vector![300.0, 500.0])
-        // .rotation(PI / 3.0)
         .build();
 
         let floor_collider_handle1 =
@@ -343,10 +341,11 @@ impl EventHandler for GameState {
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
-                x: coords.x,
-                y: SCREEN_SIZE.1 - coords.y - 32.0,
+                x: coords.x + 16.0,
+                y: SCREEN_SIZE.1 - coords.y - 16.0,
             })
-            .rotation(-rotation),
+            .offset(Point2 { x: 0.5, y: 0.5 })
+            // .rotation(-rotation),
         );
 
         let ball = &self.world2.rigid_body_set[self.world2.handle];
@@ -355,10 +354,11 @@ impl EventHandler for GameState {
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
-                x: coords.x,
-                y: SCREEN_SIZE.1 - coords.y - 32.0,
+                x: coords.x + 16.0,
+                y: SCREEN_SIZE.1 - coords.y - 16.0,
             })
-            .rotation(-rotation),
+            .offset(Point2 { x: 0.5, y: 0.5 })
+            // .rotation(-rotation),
         );
 
         let ball = &self.world3.rigid_body_set[self.world3.handle];
@@ -367,10 +367,11 @@ impl EventHandler for GameState {
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
-                x: coords.x,
-                y: SCREEN_SIZE.1 - coords.y - 32.0,
+                x: coords.x + 16.0,
+                y: SCREEN_SIZE.1 - coords.y - 16.0,
             })
-            .rotation(-rotation),
+            .offset(Point2 { x: 0.5, y: 0.5 })
+            // .rotation(-rotation),
         );
 
         let ball = &self.world4.rigid_body_set[self.world4.handle];
@@ -379,10 +380,11 @@ impl EventHandler for GameState {
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
-                x: coords.x,
-                y: SCREEN_SIZE.1 - coords.y - 32.0,
+                x: coords.x + 16.0,
+                y: SCREEN_SIZE.1 - coords.y - 16.0,
             })
-            .rotation(-rotation),
+            .offset(Point2 { x: 0.5, y: 0.5 })
+            // .rotation(-rotation),
         );
 
         canvas.finish(ctx)?;
