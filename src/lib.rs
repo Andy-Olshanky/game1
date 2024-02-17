@@ -126,7 +126,7 @@ impl GameState {
 
         let floor_body = RigidBodyBuilder::kinematic_velocity_based()
             .lock_translations()
-            // .angvel(PI / 6.0)
+            .angvel(PI / 6.0)
             .build();
 
         let floor_handle1 = rigid_body_set1.insert(floor_body.clone());
@@ -345,7 +345,7 @@ impl EventHandler for GameState {
                 y: SCREEN_SIZE.1 - coords.y - 16.0,
             })
             .offset(Point2 { x: 0.5, y: 0.5 })
-            // .rotation(-rotation),
+            .rotation(-rotation),
         );
 
         let ball = &self.world2.rigid_body_set[self.world2.handle];
@@ -358,7 +358,7 @@ impl EventHandler for GameState {
                 y: SCREEN_SIZE.1 - coords.y - 16.0,
             })
             .offset(Point2 { x: 0.5, y: 0.5 })
-            // .rotation(-rotation),
+            .rotation(-rotation),
         );
 
         let ball = &self.world3.rigid_body_set[self.world3.handle];
@@ -371,7 +371,7 @@ impl EventHandler for GameState {
                 y: SCREEN_SIZE.1 - coords.y - 16.0,
             })
             .offset(Point2 { x: 0.5, y: 0.5 })
-            // .rotation(-rotation),
+            .rotation(-rotation),
         );
 
         let ball = &self.world4.rigid_body_set[self.world4.handle];
@@ -384,7 +384,7 @@ impl EventHandler for GameState {
                 y: SCREEN_SIZE.1 - coords.y - 16.0,
             })
             .offset(Point2 { x: 0.5, y: 0.5 })
-            // .rotation(-rotation),
+            .rotation(-rotation),
         );
 
         canvas.finish(ctx)?;
