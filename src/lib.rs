@@ -337,40 +337,52 @@ impl EventHandler for GameState {
                 .rotation(-rotation),
         );
 
-        let coords = &self.world1.rigid_body_set[self.world1.handle].translation();
+        let ball = &self.world1.rigid_body_set[self.world1.handle];
+        let coords = ball.translation();
+        let rotation = ball.rotation().angle();
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
                 x: coords.x,
                 y: SCREEN_SIZE.1 - coords.y - 32.0,
-            }),
+            })
+            .rotation(-rotation),
         );
 
-        let coords = &self.world2.rigid_body_set[self.world2.handle].translation();
+        let ball = &self.world2.rigid_body_set[self.world2.handle];
+        let coords = ball.translation();
+        let rotation = ball.rotation().angle();
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
                 x: coords.x,
                 y: SCREEN_SIZE.1 - coords.y - 32.0,
-            }),
+            })
+            .rotation(-rotation),
         );
 
-        let coords = &self.world3.rigid_body_set[self.world3.handle].translation();
+        let ball = &self.world3.rigid_body_set[self.world3.handle];
+        let coords = ball.translation();
+        let rotation = ball.rotation().angle();
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
                 x: coords.x,
                 y: SCREEN_SIZE.1 - coords.y - 32.0,
-            }),
+            })
+            .rotation(-rotation),
         );
 
-        let coords = &self.world4.rigid_body_set[self.world4.handle].translation();
+        let ball = &self.world4.rigid_body_set[self.world4.handle];
+        let coords = ball.translation();
+        let rotation = ball.rotation().angle();
         canvas.draw(
             &self.ball.ball,
             DrawParam::default().dest(Point2 {
                 x: coords.x,
                 y: SCREEN_SIZE.1 - coords.y - 32.0,
-            }),
+            })
+            .rotation(-rotation),
         );
 
         canvas.finish(ctx)?;
