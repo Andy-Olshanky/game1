@@ -131,7 +131,7 @@ impl GameState {
 
         let floor_body = RigidBodyBuilder::kinematic_velocity_based()
             .lock_translations()
-            // .angvel(PI / 6.0)
+            .angvel(PI / 3.0)
             .build();
 
         let floor_handle1 = rigid_body_set1.insert(floor_body.clone());
@@ -163,7 +163,7 @@ impl GameState {
             collider_set4.insert_with_parent(collider.clone(), floor_handle4, &mut rigid_body_set4);
 
         let rigid_body = RigidBodyBuilder::dynamic()
-            .translation(vector![510.0, 500.0])
+            .translation(vector![510.0, 600.0])
             .build();
         let collider = ColliderBuilder::ball(ball1.ball.width() as f32 / 2.0).restitution(0.0).build();
         let ball_body_handle1 = rigid_body_set1.insert(rigid_body);
@@ -177,7 +177,7 @@ impl GameState {
         collider_set2.insert_with_parent(collider, ball_body_handle2, &mut rigid_body_set2);
 
         let rigid_body = RigidBodyBuilder::dynamic()
-            .translation(vector![510.0, 300.0])
+            .translation(vector![510.0, 200.0])
             .build();
         let collider = ColliderBuilder::ball(ball2.ball.width() as f32 / 2.0).restitution(0.0).build();
         let ball_body_handle3 = rigid_body_set3.insert(rigid_body);
