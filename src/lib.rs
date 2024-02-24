@@ -315,7 +315,6 @@ impl EventHandler for GameState {
             .get(self.world1.floor_handle)
             .unwrap();
         let rotation = floor_body.rotation().angle();
-        let por = floor_body.translation();
 
         // // Values for the 100x26 floor
         // canvas.draw(
