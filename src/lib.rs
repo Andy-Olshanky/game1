@@ -6,6 +6,7 @@ use ggez::{
 };
 use nalgebra::{vector, Vector2};
 use rapier2d::{
+    control::KinematicCharacterController,
     dynamics::{
         CCDSolver, ImpulseJointSet, IntegrationParameters, IslandManager, MultibodyJointSet,
         RigidBodyBuilder, RigidBodyHandle, RigidBodySet,
@@ -35,6 +36,18 @@ pub struct Floor {
 impl Floor {
     pub fn new(ctx: &mut Context, floor_image: Image) -> GameResult<Self> {
         Ok(Self { floor: floor_image })
+    }
+}
+
+struct Player {
+    image: Image,
+}
+
+impl Player {
+    pub fn new(player_image: Image) -> GameResult<Self> {
+        Ok(Self {
+            image: player_image,
+        })
     }
 }
 
@@ -103,6 +116,7 @@ pub struct GameState {
     world2: World,
     world3: World,
     world4: World,
+    player: Player,
 }
 
 impl GameState {
@@ -116,6 +130,8 @@ impl GameState {
         let mut collider_set3 = ColliderSet::new();
         let mut collider_set4 = ColliderSet::new();
 
+        let player_image = Image::from_path(ctx, "\\dev_player.png")?;
+
         let floor_image1 = Image::from_path(ctx, "\\floor.png")?;
         let floor1 = Floor::new(ctx, floor_image1).unwrap();
         let floor_image2 = Image::from_path(ctx, "\\floor2.png")?;
@@ -126,10 +142,10 @@ impl GameState {
         let ball_image2 = Image::from_path(ctx, "\\ball2.png")?;
         let ball2 = Ball::new(ctx, ball_image2).unwrap();
 
-        let floor_body = RigidBodyBuilder::kinematic_velocity_based()    
+        let floor_body = RigidBodyBuilder::kinematic_velocity_based()
             .translation(vector![500.0, 400.0])
             .lock_translations()
-            .angvel(2.0 * PI / 3.0)
+            // .angvel(2.0 * PI / 3.0)
             .build();
 
         let floor_handle1 = rigid_body_set1.insert(floor_body.clone());
@@ -137,17 +153,17 @@ impl GameState {
         let floor_handle3 = rigid_body_set3.insert(floor_body.clone());
         let floor_handle4 = rigid_body_set4.insert(floor_body.clone());
 
-        let collider = ColliderBuilder::cuboid(
-            floor1.floor.width() as f32 / 2.0,
-            floor1.floor.height() as f32 / 2.0,
-        )
-        .build();
-
         // let collider = ColliderBuilder::cuboid(
-        //     floor2.floor.width() as f32 / 2.0,
-        //     floor2.floor.height() as f32 / 2.0,
+        //     floor1.floor.width() as f32 / 2.0,
+        //     floor1.floor.height() as f32 / 2.0,
         // )
         // .build();
+
+        let collider = ColliderBuilder::cuboid(
+            floor2.floor.width() as f32 / 2.0,
+            floor2.floor.height() as f32 / 2.0,
+        )
+        .build();
 
         collider_set1.insert_with_parent(collider.clone(), floor_handle1, &mut rigid_body_set1);
         collider_set2.insert_with_parent(collider.clone(), floor_handle2, &mut rigid_body_set2);
@@ -157,28 +173,36 @@ impl GameState {
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![510.0, 600.0])
             .build();
-        let collider = ColliderBuilder::ball(ball1.ball.width() as f32 / 2.0).restitution(0.0).build();
+        let collider = ColliderBuilder::ball(ball1.ball.width() as f32 / 2.0)
+            .restitution(0.0)
+            .build();
         let ball_body_handle1 = rigid_body_set1.insert(rigid_body);
         collider_set1.insert_with_parent(collider, ball_body_handle1, &mut rigid_body_set1);
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![700.0, 400.0])
             .build();
-        let collider = ColliderBuilder::ball(ball1.ball.width() as f32 / 2.0).restitution(0.0).build();
+        let collider = ColliderBuilder::ball(ball1.ball.width() as f32 / 2.0)
+            .restitution(0.0)
+            .build();
         let ball_body_handle2 = rigid_body_set2.insert(rigid_body);
         collider_set2.insert_with_parent(collider, ball_body_handle2, &mut rigid_body_set2);
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![510.0, 200.0])
             .build();
-        let collider = ColliderBuilder::ball(ball2.ball.width() as f32 / 2.0).restitution(0.0).build();
+        let collider = ColliderBuilder::ball(ball2.ball.width() as f32 / 2.0)
+            .restitution(0.0)
+            .build();
         let ball_body_handle3 = rigid_body_set3.insert(rigid_body);
         collider_set3.insert_with_parent(collider, ball_body_handle3, &mut rigid_body_set3);
 
         let rigid_body = RigidBodyBuilder::dynamic()
             .translation(vector![300.0, 400.0])
             .build();
-        let collider = ColliderBuilder::ball(ball2.ball.width() as f32 / 2.0).restitution(0.0).build();
+        let collider = ColliderBuilder::ball(ball2.ball.width() as f32 / 2.0)
+            .restitution(0.0)
+            .build();
         let ball_body_handle4 = rigid_body_set4.insert(rigid_body);
         collider_set4.insert_with_parent(collider, ball_body_handle4, &mut rigid_body_set4);
 
@@ -215,6 +239,7 @@ impl GameState {
                 vector![100.0, 0.0],
                 floor_handle4,
             ),
+            player: Player::new(player_image).unwrap(),
         })
     }
 }
@@ -295,7 +320,10 @@ impl EventHandler for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         let mut canvas = Canvas::from_frame(ctx, graphics::Color::RED);
 
-        let offset = 16.0;
+        canvas.draw(
+            &self.player.image,
+            DrawParam::default().dest(Point2 { x: 300.0, y: 400.0 }),
+        );
 
         let floor_body = self
             .world1
@@ -305,21 +333,10 @@ impl EventHandler for GameState {
         let rotation = floor_body.rotation().angle();
         let pos = floor_body.position().translation;
 
-        // Values for the 100x26 floor
-        canvas.draw(
-            &self.floor1.floor,
-            DrawParam::default()
-                .dest(Point2 {
-                    x: pos.x + offset,
-                    y: SCREEN_SIZE.1 - pos.y - offset,
-                })
-                .offset(Point2 { x: 0.5, y: 0.5 })
-                .rotation(-rotation),
-        );
-
-        // // Values for the 150x32 floor
+        // // Values for the 100x26 floor
+        // let offset = self.floor1.floor.height() as f32 / 2.0;
         // canvas.draw(
-        //     &self.floor2.floor,
+        //     &self.floor1.floor,
         //     DrawParam::default()
         //         .dest(Point2 {
         //             x: pos.x + offset,
@@ -329,17 +346,31 @@ impl EventHandler for GameState {
         //         .rotation(-rotation),
         // );
 
+        // Values for the 150x32 floor
+        let offset = self.floor2.floor.height() as f32 / 2.0;
+        canvas.draw(
+            &self.floor2.floor,
+            DrawParam::default()
+                .dest(Point2 {
+                    x: pos.x + offset,
+                    y: SCREEN_SIZE.1 - pos.y - offset,
+                })
+                .offset(Point2 { x: 0.5, y: 0.5 })
+                .rotation(-rotation),
+        );
+
         let ball = &self.world1.rigid_body_set[self.world1.handle];
         let coords = ball.translation();
         let rotation = ball.rotation().angle();
         canvas.draw(
             &self.ball1.ball,
-            DrawParam::default().dest(Point2 {
-                x: coords.x + offset,
-                y: SCREEN_SIZE.1 - coords.y - offset,
-            })
-            .offset(Point2 { x: 0.5, y: 0.5 })
-            .rotation(-rotation),
+            DrawParam::default()
+                .dest(Point2 {
+                    x: coords.x + offset,
+                    y: SCREEN_SIZE.1 - coords.y - offset,
+                })
+                .offset(Point2 { x: 0.5, y: 0.5 })
+                .rotation(-rotation),
         );
 
         let ball = &self.world2.rigid_body_set[self.world2.handle];
@@ -347,12 +378,13 @@ impl EventHandler for GameState {
         let rotation = ball.rotation().angle();
         canvas.draw(
             &self.ball1.ball,
-            DrawParam::default().dest(Point2 {
-                x: coords.x + offset,
-                y: SCREEN_SIZE.1 - coords.y - offset,
-            })
-            .offset(Point2 { x: 0.5, y: 0.5 })
-            .rotation(-rotation),
+            DrawParam::default()
+                .dest(Point2 {
+                    x: coords.x + offset,
+                    y: SCREEN_SIZE.1 - coords.y - offset,
+                })
+                .offset(Point2 { x: 0.5, y: 0.5 })
+                .rotation(-rotation),
         );
 
         let ball = &self.world3.rigid_body_set[self.world3.handle];
@@ -360,12 +392,13 @@ impl EventHandler for GameState {
         let rotation = ball.rotation().angle();
         canvas.draw(
             &self.ball2.ball,
-            DrawParam::default().dest(Point2 {
-                x: coords.x + offset,
-                y: SCREEN_SIZE.1 - coords.y - offset,
-            })
-            .offset(Point2 { x: 0.5, y: 0.5 })
-            .rotation(-rotation),
+            DrawParam::default()
+                .dest(Point2 {
+                    x: coords.x + offset,
+                    y: SCREEN_SIZE.1 - coords.y - offset,
+                })
+                .offset(Point2 { x: 0.5, y: 0.5 })
+                .rotation(-rotation),
         );
 
         let ball = &self.world4.rigid_body_set[self.world4.handle];
@@ -373,12 +406,13 @@ impl EventHandler for GameState {
         let rotation = ball.rotation().angle();
         canvas.draw(
             &self.ball2.ball,
-            DrawParam::default().dest(Point2 {
-                x: coords.x + offset,
-                y: SCREEN_SIZE.1 - coords.y - offset,
-            })
-            .offset(Point2 { x: 0.5, y: 0.5 })
-            .rotation(-rotation),
+            DrawParam::default()
+                .dest(Point2 {
+                    x: coords.x + offset,
+                    y: SCREEN_SIZE.1 - coords.y - offset,
+                })
+                .offset(Point2 { x: 0.5, y: 0.5 })
+                .rotation(-rotation),
         );
 
         canvas.finish(ctx)?;
